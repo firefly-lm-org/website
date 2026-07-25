@@ -1,6 +1,18 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/www-redirect",
+      "destination": "https://firefly-lm.com/",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -57,6 +69,12 @@
           "value": "public, max-age=2592000"
         }
       ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
