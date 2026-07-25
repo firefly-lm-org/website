@@ -18,42 +18,93 @@
     <nav>
       <a href="https://github.com/firefly-lm-org">GitHub</a>
       <a href="#status">状态</a>
+      <a href="#news">动态</a>
       <a href="https://afdian.net/a/firefly-lm">赞助</a>
     </nav>
   </header>
 
   <main>
+    <!-- Hero -->
     <section class="hero">
       <h1>萤火虫大模型<br/>Firefly LM</h1>
       <p class="sub">分布式志愿算力驱动的开源持续微调与对齐平台</p>
       <p class="meta">代码 Apache-2.0 · 权重 OpenRAIL-M · 永久免费</p>
       <div class="cta">
         <a class="btn" href="https://github.com/firefly-lm-org">查看 GitHub</a>
-        <a class="btn ghost" href="#status">v0.5 客户端预览（筹备）</a>
+        <a class="btn ghost" href="#status">v0.2 真实训练（进行中）</a>
       </div>
     </section>
 
+    <!-- What -->
     <section class="what">
       <p>不是从头训大模型，而是让闲置显卡持续参与 LoRA 微调，
       通过 FedAvg 聚合成社区共有的 7B 助手。底座 Qwen3，权重永远可免费获取。</p>
     </section>
 
+    <!-- Status -->
     <section id="status" class="status">
-      <h2>当前状态 · v0.1 收尾</h2>
+      <h2>当前状态 · v0.1 收尾 ✅</h2>
       <ul>
-        <li>✅ 调度中心本地闭环运行，MinIO mock 已替换</li>
+        <li>✅ 调度中心本地闭环运行，MinIO 已对接</li>
         <li>✅ firefly-client 42/42 测试绿</li>
-        <li>✅ 聚合协议 ADR-7 草稿完成，等训练侧 Reviewer</li>
-        <li>⏳ 下一里程碑 v0.5：真实 QLoRA + 公网存储 + 客户端公测</li>
+        <li>✅ 聚合协议 ADR-7 完成，FedAvg Worker 就绪</li>
+        <li>✅ 官网 firefly-lm.com 上线（Vercel + 阿里云 DNS）</li>
+        <li>✅ 治理文档 7 件套（GOVERNANCE/FINANCE/SECURITY/CONTRIBUTING/MODEL_LICENSE/PRIVACY/RISK）</li>
+        <li>✅ VALUATION_GATES 6/6 全解锁</li>
+        <li>⏳ 下一里程碑 v0.2：真实 QLoRA 训练接入</li>
       </ul>
     </section>
 
+    <!-- News -->
+    <section id="news" class="news">
+      <h2>最近动态</h2>
+      <ul class="news-list">
+        <li>
+          <span class="news-date">2026-07-25</span>
+          <span class="news-tag tag-shipped">已上线</span>
+          <span class="news-text">v0.1 基础设施就绪：调度闭环 + 客户端 + 聚合 Worker + 官网 + 治理文档全部就位，VALUATION_GATES 6/6 全解锁</span>
+        </li>
+        <li>
+          <span class="news-date">2026-07-25</span>
+          <span class="news-tag tag-shipped">已部署</span>
+          <span class="news-text">官网 firefly-lm.com 在 Vercel 生产环境上线，阿里云 DNS 解析完成，6 项安全头（HSTS/X-Frame/X-XSS/Referrer/Permissions/nosniff）配置生效</span>
+        </li>
+        <li>
+          <span class="news-date">2026-07-24</span>
+          <span class="news-tag tag-doc">文档</span>
+          <span class="news-text">发布 RISK_MANAGEMENT.md（Top 5 技术风险 + 缓解措施），证明项目承认风险、有预案、可审计</span>
+        </li>
+        <li>
+          <span class="news-date">2026-07-22</span>
+          <span class="news-tag tag-shipped">已验证</span>
+          <span class="news-text">firefly-client CLI 42/42 pytest 全绿，覆盖注册/登录/领任务/模拟训练/提交/心跳全链路</span>
+        </li>
+        <li>
+          <span class="news-date">2026-07-20</span>
+          <span class="news-tag tag-shipped">已验证</span>
+          <span class="news-text">调度中心 E2E 闭环跑通：任务 create → claim（分布式锁）→ progress → submit → validate → FedAvg 聚合 → checkpoint 落地</span>
+        </li>
+        <li>
+          <span class="news-date">2026-07-18</span>
+          <span class="news-tag tag-doc">文档</span>
+          <span class="news-text">完成 7 份治理文档（GOVERNANCE/CONTRIBUTING/SECURITY/MODEL_LICENSE/FINANCE/TRADEMARK/VALUATION），DCO Signed-off-by 流程落地</span>
+        </li>
+        <li>
+          <span class="news-date">2026-07-15</span>
+          <span class="news-tag tag-plan">规划</span>
+          <span class="news-text">确定技术路线：基于 Qwen3 底座 + 社区 LoRA 聚合 + FedAvg 协议，定位"分布式持续微调层"而非"通用大模型"</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Links -->
     <section class="links">
       <h2>资源</h2>
       <p><a href="https://github.com/firefly-lm-org/scheduler">调度中心</a> ·
          <a href="https://github.com/firefly-lm-org/firefly-client">火种客户端</a> ·
-         <a href="https://github.com/firefly-lm-org/docs">治理文档</a></p>
-      <p>GOVERNANCE · FINANCE · MODEL_LICENSE · PRIVACY — 均在 docs 仓库根目录</p>
+         <a href="https://github.com/firefly-lm-org/docs">治理文档</a> ·
+         <a href="https://github.com/firefly-lm-org/website">官网源码</a></p>
+      <p>GOVERNANCE · FINANCE · MODEL_LICENSE · PRIVACY · RISK_MANAGEMENT — 均在 docs 仓库根目录</p>
       <p>赞助：<a href="https://afdian.net/a/firefly-lm">爱发电</a></p>
     </section>
   </main>
