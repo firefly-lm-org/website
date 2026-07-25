@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>萤火虫大模型 Firefly LM</title>
+  <meta name="description" content="分布式志愿算力驱动的开源持续微调与对齐平台。代码 Apache-2.0，权重 OpenRAIL-M。" />
+  <meta property="og:title" content="萤火虫大模型 Firefly LM" />
+  <meta property="og:description" content="分布式志愿算力驱动的开源持续微调与对齐平台" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://firefly-lm.com" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <span class="logo">🔥 Firefly LM</span>
+    <nav>
+      <a href="https://github.com/firefly-lm-org">GitHub</a>
+      <a href="#status">状态</a>
+      <a href="https://afdian.com/a/firefly-lm">赞助</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>萤火虫大模型<br/>Firefly LM</h1>
+      <p class="sub">分布式志愿算力驱动的开源持续微调与对齐平台</p>
+      <p class="meta">代码 Apache-2.0 · 权重 OpenRAIL-M · 永久免费</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/firefly-lm-org">查看 GitHub</a>
+        <a class="btn ghost" href="#status">v0.5 客户端预览（筹备）</a>
+      </div>
+    </section>
+
+    <section class="what">
+      <p>不是从头训大模型，而是让闲置显卡持续参与 LoRA 微调，
+      通过 FedAvg 聚合成社区共有的 7B 助手。底座 Qwen3，权重永远可免费获取。</p>
+    </section>
+
+    <section id="status" class="status">
+      <h2>当前状态 · v0.1 收尾</h2>
+      <ul>
+        <li>✅ 调度中心本地闭环运行，MinIO mock 已替换</li>
+        <li>✅ firefly-client 42/42 测试绿</li>
+        <li>✅ 聚合协议 ADR-7 草稿完成，等训练侧 Reviewer</li>
+        <li>⏳ 下一里程碑 v0.5：真实 QLoRA + 公网存储 + 客户端公测</li>
+      </ul>
+    </section>
+
+    <section class="links">
+      <h2>资源</h2>
+      <p><a href="https://github.com/firefly-lm-org/scheduler">调度中心</a> ·
+         <a href="https://github.com/firefly-lm-org/firefly-client">火种客户端</a> ·
+         <a href="https://github.com/firefly-lm-org/docs">治理文档</a></p>
+      <p>GOVERNANCE · FINANCE · MODEL_LICENSE · PRIVACY — 均在 docs 仓库根目录</p>
+      <p>赞助：<a href="https://afdian.com/a/firefly-lm">爱发电</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Firefly LM Community · 商业支持：上海凌泷科技有限公司</p>
+    <p>安全联系：security@firefly-lm.com</p>
+  </footer>
+</body>
+</html>
