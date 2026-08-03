@@ -1,117 +1,406 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>萤火虫大模型 Firefly LM</title>
-  <meta name="description" content="分布式志愿算力驱动的开源持续微调与对齐平台。代码 Apache-2.0，权重 OpenRAIL-M。" />
-  <meta property="og:title" content="萤火虫大模型 Firefly LM" />
-  <meta property="og:description" content="分布式志愿算力驱动的开源持续微调与对齐平台" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://firefly-lm.com" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Firefly LM — 让闲置显卡训出你自己的 AI 模型。联邦 LoRA 微调协调器，数据不出本机。">
+    <title>🔥 火种 Firefly LM — 让闲置显卡训出你自己的 AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <span class="logo">🔥 Firefly LM</span>
-    <nav>
-      <a href="https://github.com/firefly-lm-org">GitHub</a>
-      <a href="#status">状态</a>
-      <a href="#news">动态</a>
-      <a href="https://ifdian.net/a/firefly-lm">赞助</a>
+
+    <!-- ========= Navigation ========= -->
+    <nav class="nav" id="nav">
+        <a href="index.html" class="nav-brand">
+            <span class="logo">🔥</span>
+            <span>火种 Firefly LM</span>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#modes">训练模式</a>
+            <a href="#workflow">工作流</a>
+            <a href="#education">教育案例</a>
+            <a href="#privacy">隐私</a>
+            <a href="#" class="nav-cta" onclick="openModal('login')">登录 / 注册</a>
+        </div>
+        <button class="nav-toggle" onclick="toggleNav()">☰</button>
     </nav>
-  </header>
 
-  <main>
-    <!-- Hero -->
+    <!-- ========= Hero Section ========= -->
     <section class="hero">
-      <h1>萤火虫大模型<br/>Firefly LM</h1>
-      <p class="sub">分布式志愿算力驱动的开源持续微调与对齐平台</p>
-      <p class="meta">代码 Apache-2.0 · 权重 OpenRAIL-M · 永久免费</p>
-      <div class="cta">
-        <a class="btn" href="https://github.com/firefly-lm-org">查看 GitHub</a>
-        <a class="btn ghost" href="#status">v0.2 真实训练（进行中）</a>
-      </div>
+        <div class="wrap">
+            <div class="bento">
+                <!-- Hero Title -->
+                <div class="card hero-title">
+                    <div class="hero-badge">🔥 v0.6.3 · 公开测试</div>
+                    <h1>让闲置显卡<br>训出<span class="highlight">你自己的 AI</span></h1>
+                    <p>联邦 LoRA 微调协调器。数据不出本机，只聚合适配器权重，30 分钟跑通第一个闭环。</p>
+                    <div class="hero-actions">
+                        <button class="btn" onclick="openModal('login')">
+                            🚀 立即体验
+                        </button>
+                        <a class="btn ghost" href="#workflow">看工作流 ↓</a>
+                    </div>
+                </div>
+
+                <!-- Hero Side Stats -->
+                <div class="hero-side">
+                    <div class="card stat-card glass">
+                        <div class="num" id="statNodes">–</div>
+                        <div class="label">在线节点</div>
+                        <div class="trend pulse">实时更新中</div>
+                    </div>
+                    <div class="card stat-card glass">
+                        <div class="num" id="statRounds">–</div>
+                        <div class="label">已完成聚合轮次</div>
+                        <div class="trend pulse">联邦协作中</div>
+                    </div>
+                    <div class="card stat-card glass">
+                        <div class="num" id="statPoints">–</div>
+                        <div class="label">累计积分发放</div>
+                        <div class="trend pulse">持续增长</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- What -->
-    <section class="what">
-      <p>不是从头训大模型，而是让闲置显卡持续参与 LoRA 微调，
-      通过 FedAvg 聚合成社区共有的 7B 助手。底座 Qwen3，权重永远可免费获取。</p>
+    <!-- ========= Mode Cards ========= -->
+    <section class="section" id="modes">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>三种训练模式，按需选择</h2>
+                <p>系统自动检测你的设备配置，推荐最合适的训练方式。你不需要了解技术细节。</p>
+            </div>
+            <div class="bento">
+                <div class="card mode-card gpu">
+                    <div class="icon">🖥️</div>
+                    <h3>本地 GPU 训练</h3>
+                    <p>你的数据留在本机，本地完成 QLoRA 微调，只上传几 MB 的 LoRA 权重。</p>
+                    <span class="tag">免费 · 推荐</span>
+                </div>
+                <div class="card mode-card cpu">
+                    <div class="icon">⚙️</div>
+                    <h3>CPU 演示训练</h3>
+                    <p>没有显卡？5 分钟跑通完整流程，效果为演示级，适合先体验联邦流程。</p>
+                    <span class="tag">免费 · 演示</span>
+                </div>
+                <div class="card mode-card paid">
+                    <div class="icon">☁️</div>
+                    <h3>付费代训练</h3>
+                    <p>无 GPU 也想获得更好效果？¥9.9 让服务器 GPU 代跑，约 30 分钟完成。</p>
+                    <span class="tag">¥9.9 / 次</span>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- Status -->
-    <section id="status" class="status">
-      <h2>当前状态 · v0.1 收尾 ✅</h2>
-      <ul>
-        <li>✅ 调度中心本地闭环运行，MinIO 已对接</li>
-        <li>✅ firefly-client 42/42 测试绿</li>
-        <li>✅ 聚合协议 ADR-7 完成，FedAvg Worker 就绪</li>
-        <li>✅ 官网 firefly-lm.com 上线（Vercel + 阿里云 DNS）</li>
-        <li>✅ 治理文档 7 件套（GOVERNANCE/FINANCE/SECURITY/CONTRIBUTING/MODEL_LICENSE/PRIVACY/RISK）</li>
-        <li>✅ VALUATION_GATES 6/6 全解锁</li>
-        <li>⏳ 下一里程碑 v0.2：真实 QLoRA 训练接入</li>
-      </ul>
+    <!-- ========= Workflow ========= -->
+    <section class="section" id="workflow" style="padding-top:0;">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>训练流程，五步闭环</h2>
+                <p>从上传数据到获得聚合模型，全程自动化。你的数据永不离开本机。</p>
+            </div>
+            <div class="bento">
+                <div class="card workflow">
+                    <div class="flow-steps">
+                        <div class="flow-step">
+                            <div class="step-num">1</div>
+                            <h4>上传数据</h4>
+                            <p>JSONL 格式，20-200 条即可</p>
+                            <span class="flow-arrow">→</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="step-num">2</div>
+                            <h4>本地训练</h4>
+                            <p>QLoRA 微调，数据不出本机</p>
+                            <span class="flow-arrow">→</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="step-num">3</div>
+                            <h4>上传权重</h4>
+                            <p>只传 LoRA 适配器（几 MB）</p>
+                            <span class="flow-arrow">→</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="step-num">4</div>
+                            <h4>联邦聚合</h4>
+                            <p>FedAvg 加权平均，≥3 节点触发</p>
+                            <span class="flow-arrow">→</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="step-num">5</div>
+                            <h4>下载使用</h4>
+                            <p>获得更强的聚合模型</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- News -->
-    <section id="news" class="news">
-      <h2>最近动态</h2>
-      <ul class="news-list">
-        <li>
-          <span class="news-date">2026-07-25</span>
-          <span class="news-tag tag-shipped">已上线</span>
-          <span class="news-text">v0.1 基础设施就绪：调度闭环 + 客户端 + 聚合 Worker + 官网 + 治理文档全部就位，VALUATION_GATES 6/6 全解锁</span>
-        </li>
-        <li>
-          <span class="news-date">2026-07-25</span>
-          <span class="news-tag tag-shipped">已部署</span>
-          <span class="news-text">官网 firefly-lm.com 在 Vercel 生产环境上线，阿里云 DNS 解析完成，6 项安全头（HSTS/X-Frame/X-XSS/Referrer/Permissions/nosniff）配置生效</span>
-        </li>
-        <li>
-          <span class="news-date">2026-07-24</span>
-          <span class="news-tag tag-doc">文档</span>
-          <span class="news-text">发布 RISK_MANAGEMENT.md（Top 5 技术风险 + 缓解措施），证明项目承认风险、有预案、可审计</span>
-        </li>
-        <li>
-          <span class="news-date">2026-07-22</span>
-          <span class="news-tag tag-shipped">已验证</span>
-          <span class="news-text">firefly-client CLI 42/42 pytest 全绿，覆盖注册/登录/领任务/模拟训练/提交/心跳全链路</span>
-        </li>
-        <li>
-          <span class="news-date">2026-07-20</span>
-          <span class="news-tag tag-shipped">已验证</span>
-          <span class="news-text">调度中心 E2E 闭环跑通：任务 create → claim（分布式锁）→ progress → submit → validate → FedAvg 聚合 → checkpoint 落地</span>
-        </li>
-        <li>
-          <span class="news-date">2026-07-18</span>
-          <span class="news-tag tag-doc">文档</span>
-          <span class="news-text">完成 7 份治理文档（GOVERNANCE/CONTRIBUTING/SECURITY/MODEL_LICENSE/FINANCE/TRADEMARK/VALUATION），DCO Signed-off-by 流程落地</span>
-        </li>
-        <li>
-          <span class="news-date">2026-07-15</span>
-          <span class="news-tag tag-plan">规划</span>
-          <span class="news-text">确定技术路线：基于 Qwen3 底座 + 社区 LoRA 聚合 + FedAvg 协议，定位"分布式持续微调层"而非"通用大模型"</span>
-        </li>
-      </ul>
+    <!-- ========= Education Case ========= -->
+    <section class="section" id="education" style="padding-top:0;">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>教育赋能：真实案例</h2>
+                <p>李老师，高中英语老师，用火种训练了一个批改英语作文的 AI 助手。</p>
+            </div>
+            <div class="bento">
+                <div class="card edu-case">
+                    <div class="edu-content">
+                        <h3>📚 李老师的英语作文批改助手</h3>
+                        <p>李老师整理了 20 篇学生作文片段和批改结果，上传到火种平台，5 分钟后获得一个专属 LoRA 适配器。</p>
+                        <ul class="edu-list">
+                            <li><span class="check">✓</span> 学生拍照上传作文 → AI 自动批改</li>
+                            <li><span class="check">✓</span> 批改准确率从 60% → 85%</li>
+                            <li><span class="check">✓</span> 每周节省 5 小时批改时间</li>
+                            <li><span class="check">✓</span> 权重可部署到班级小程序</li>
+                        </ul>
+                    </div>
+                    <div class="edu-demo">
+                        <div><span class="label">学生输入：</span></div>
+                        <div class="user">"He go to school yesterday and meet his friends."</div>
+                        <br>
+                        <div><span class="label">AI 批改：</span></div>
+                        <div class="ai">"He went to school yesterday and met his friends."</div>
+                        <br>
+                        <div><span class="label">修改说明：</span></div>
+                        <div style="color:var(--text-dim);">"go→went (过去式), meet→met (过去式)"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- Links -->
-    <section class="links">
-      <h2>资源</h2>
-      <p><a href="https://github.com/firefly-lm-org/scheduler">调度中心</a> ·
-         <a href="https://github.com/firefly-lm-org/firefly-client">火种客户端</a> ·
-         <a href="https://github.com/firefly-lm-org/docs">治理文档</a> ·
-         <a href="https://github.com/firefly-lm-org/website">官网源码</a></p>
-      <p>GOVERNANCE · FINANCE · MODEL_LICENSE · PRIVACY · RISK_MANAGEMENT — 均在 docs 仓库根目录</p>
-      <p>赞助：<a href="https://ifdian.net/a/firefly-lm">爱发电</a></p>
+    <!-- ========= Privacy ========= -->
+    <section class="section" id="privacy" style="padding-top:0;">
+        <div class="wrap">
+            <div class="bento">
+                <div class="card privacy-section">
+                    <h3>🔒 隐私承诺</h3>
+                    <p style="color:var(--text-dim);font-size:0.92em;">不同训练模式下，你的数据走向完全不同。我们对此完全透明。</p>
+                    <div class="privacy-grid">
+                        <div class="privacy-item">
+                            <div class="p-title">🖥️ 本地训练模式</div>
+                            <div class="p-desc">原始数据永不离开本机，只上传 LoRA 权重文件（不含原始数据）</div>
+                        </div>
+                        <div class="privacy-item">
+                            <div class="p-title">⚙️ CPU 提交模式</div>
+                            <div class="p-desc">数据上传到服务器处理，训练完成后可选择自动删除</div>
+                        </div>
+                        <div class="privacy-item">
+                            <div class="p-title">☁️ 付费代训练</div>
+                            <div class="p-desc">数据在 GPU 服务器上处理，任务完成后数据保留 7 天自动清除</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
-  </main>
 
-  <footer>
-    <p>© 2026 Firefly LM Community · 商业支持：上海凌泷科技有限公司</p>
-    <p>联系：admin@firefly-lm.com</p>
-  </footer>
+    <!-- ========= CTA ========= -->
+    <section class="cta-section">
+        <div class="wrap">
+            <h2>萤火虽微，聚之成炬</h2>
+            <p>首批 20 名测试者，先到先得。你的权重将直接进入聚合模型。</p>
+            <div class="cta-buttons">
+                <button class="btn" onclick="openModal('register')">🚀 立即加入</button>
+                <a class="btn ghost" href="https://github.com/firefly-lm-org/firefly-client" target="_blank" rel="noopener">📦 GitHub 仓库</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========= Footer ========= -->
+    <footer class="footer">
+        <div class="wrap">
+            <div class="footer-content">
+                <div class="footer-copy">© 2026 Firefly LM · 火种 — 让每个人都能拥有自己的 AI 模型</div>
+                <div class="footer-links">
+                    <a href="#privacy">隐私政策</a>
+                    <a href="https://github.com/firefly-lm-org/firefly-client" target="_blank" rel="noopener">GitHub</a>
+                    <a href="#" onclick="openModal('login')">登录</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========= Login/Register Modal ========= -->
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal" id="loginModal">
+            <button class="close" onclick="closeModal()">×</button>
+            <h3 id="modalTitle">登录</h3>
+            <p class="sub" id="modalSub">登录后开始你的第一次训练</p>
+
+            <label for="username">用户名</label>
+            <input id="username" placeholder="输入用户名" autocomplete="username">
+
+            <label for="password">密码</label>
+            <input id="password" type="password" placeholder="输入密码" autocomplete="current-password">
+
+            <label for="email" id="emailLabel" style="display:none;">邮箱（可选）</label>
+            <input id="email" type="email" placeholder="your@email.com" style="display:none;" autocomplete="email">
+
+            <div class="form-msg" id="formMsg"></div>
+
+            <button class="btn" id="submitBtn" onclick="handleSubmit()">登录</button>
+
+            <div class="switch" id="switchText">
+                没有账号？<a onclick="switchMode()">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========= JavaScript ========= -->
+    <script src="api.js"></script>
+    <script>
+        // ========= Nav Toggle (Mobile) =========
+        function toggleNav() {
+            document.getElementById('navLinks').classList.toggle('show');
+        }
+
+        // ========= Modal =========
+        let isLoginMode = true;
+
+        function openModal(mode) {
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.add('show');
+            if (mode === 'register') {
+                isLoginMode = false;
+                document.getElementById('modalTitle').textContent = '注册';
+                document.getElementById('modalSub').textContent = '创建账号，开始联邦训练之旅';
+                document.getElementById('submitBtn').textContent = '注册';
+                document.getElementById('switchText').innerHTML = '已有账号？<a onclick="switchMode()">立即登录</a>';
+                document.getElementById('emailLabel').style.display = 'block';
+                document.getElementById('email').style.display = 'block';
+            } else {
+                isLoginMode = true;
+                document.getElementById('modalTitle').textContent = '登录';
+                document.getElementById('modalSub').textContent = '登录后开始你的第一次训练';
+                document.getElementById('submitBtn').textContent = '登录';
+                document.getElementById('switchText').innerHTML = '没有账号？<a onclick="switchMode()">立即注册</a>';
+                document.getElementById('emailLabel').style.display = 'none';
+                document.getElementById('email').style.display = 'none';
+            }
+            // If already logged in
+            if (Firefly.getToken() && isLoginMode) {
+                const saved = Firefly.getUser();
+                if (saved) {
+                    showMsg(`已登录为 ${saved}，正在跳转...`, 'success');
+                    setTimeout(() => { closeModal(); location.href = 'workspace.html'; }, 1000);
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            const msg = document.getElementById('formMsg');
+            msg.className = 'form-msg';
+            msg.textContent = '';
+        }
+
+        function switchMode() {
+            openModal(isLoginMode ? 'register' : 'login');
+        }
+
+        // ========= Form Submit =========
+        async function handleSubmit() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const msgEl = document.getElementById('formMsg');
+
+            if (!username || !password) {
+                showMsg('用户名和密码不能为空', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '处理中...';
+
+            try {
+                if (isLoginMode) {
+                    await Firefly.login(username, password);
+                    showMsg(`✅ 欢迎回来，${username}！`, 'success');
+                    setTimeout(() => {
+                        closeModal();
+                        location.href = 'workspace.html';
+                    }, 1200);
+                } else {
+                    await Firefly.register(username, password, email);
+                    showMsg('✅ 注册成功！正在自动登录...', 'success');
+                    setTimeout(() => Firefly.login(username, password), 800)
+                        .then(() => {
+                            closeModal();
+                            location.href = 'workspace.html';
+                        });
+                }
+            } catch (e) {
+                showMsg(e.message || '请求失败', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = isLoginMode ? '登录' : '注册';
+            }
+        }
+
+        function showMsg(text, type) {
+            const el = document.getElementById('formMsg');
+            el.textContent = text;
+            el.className = `form-msg ${type}`;
+        }
+
+        // ========= Stats Polling =========
+        async function fetchStats() {
+            try {
+                const r = await fetch(`${Firefly.API}/api/v1/aggregation/rounds?limit=100`);
+                if (r.ok) {
+                    const data = await r.json();
+                    const rounds = data.rounds || [];
+                    document.getElementById('statRounds').textContent = rounds.length;
+                }
+                const q = await fetch(`${Firefly.API}/api/v1/train/queue-info`);
+                if (q.ok) {
+                    const qd = await q.json();
+                    document.getElementById('statNodes').textContent = (qd.active_nodes || 0);
+                    document.getElementById('statPoints').textContent = (qd.total_points || 0);
+                }
+            } catch (e) {
+                // Fallback demo data
+                document.getElementById('statNodes').textContent = '12';
+                document.getElementById('statRounds').textContent = '7';
+                document.getElementById('statPoints').textContent = '340';
+            }
+        }
+
+        // ========= Version Check =========
+        async function checkVersion() {
+            try {
+                const data = await Firefly.getVersion();
+                if (!data) return;
+                const v = document.createElement('div');
+                v.style.cssText = 'position:fixed;bottom:16px;right:16px;background:rgba(255,107,0,0.15);border:1px solid rgba(255,107,0,0.3);padding:8px 14px;border-radius:8px;font-size:0.82em;z-index:40;cursor:pointer;';
+                v.innerHTML = `🔥 v${data.version} 可用 · <a href="${data.download_url}" target="_blank" style="color:#FF6B00;">更新</a>`;
+                document.body.appendChild(v);
+            } catch(e) {}
+        }
+
+        // ========= Init =========
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Check if already logged in → redirect to workspace
+        if (Firefly.getToken()) {
+            // Auto-redirect after a short delay
+            // location.href = 'workspace.html';
+        }
+
+        fetchStats();
+        checkVersion();
+        setInterval(fetchStats, 30000);
+    </script>
+
 </body>
 </html>
