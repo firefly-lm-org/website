@@ -1,45 +1,138 @@
-# firefly-lm-org/website
+# 🔥 火种 Firefly LM — 官网
 
-萤火虫大模型官方网站静态资源。
-
-## 部署
-
-- 平台：Vercel
-- 自定义域名：firefly-lm.com
-- 部署方式：手动 API 触发（GitHub 未联动）
+> 让闲置显卡训出你自己的 AI 模型
 
 ## 文件结构
 
 ```
-website/
-  index.html           首页（Hero + Status + Links + News）
-  style.css            极简浅色主题 + 暗色自适应 + 移动端
-  vercel.json          Vercel 配置（安全头 + 缓存 + 路由）
-  VALUATION_GATES.md   v0.1 6/6 估值解锁条件
-  RISK_MANAGEMENT.md   Top 5 技术风险 + 缓解措施
-  README.md            本文件
-  PUSH_TO_GITHUB.md    推送备忘
-  _headers             Cloudflare 备用安全头
-  robots.txt           SEO
-  sitemap.xml          SEO
+firefly-website/
+├── index.html       # 官网首页（Hero + 三模式 + 工作流 + 教育案例 + 隐私 + CTA）
+├── workspace.html   # 登录后工作区（上传/训练/下载/聊天/历史/积分）
+├── style.css        # 共享样式（设计令牌、Bento、卡片、按钮、响应式）
+├── api.js           # 共享 API 封装（fetch、auth、toast、格式化）
+├── DEPLOY.md       # 部署指南（Vercel + nginx 双方案）
+└── README.md       # 本文件
 ```
 
-## v0.1 状态
+## 技术栈
 
-- 6/6 估值解锁条件通过
-- 官网可访问：https://firefly-lm.com
-- 安全头：HSTS + X-Frame-Options: DENY + nosniff
+- **纯 HTML + CSS + Vanilla JS**，零构建，零依赖
+- 设计风格：Dark-First + Bento Grid + 玻璃拟态 2.0
+- 主色：`#FF6B00`（火种橙），背景：`#0A0A0A`
+- 响应式：900px / 640px 两个断点
+- 无障碍：`prefers-reduced-motion` 支持
 
-## 三端互链
+## 快速预览
 
-- 官网 -> GitHub: https://github.com/firefly-lm-org
-- 官网 -> Afdian: https://afdian.com/a/firefly-lm
-- GitHub README -> 官网 + 赞助链接
-- 爱发电简介 -> 官网 + 仓库
+```bash
+# 本地起一个静态服务器
+python3 -m http.server 8000
 
-## 更新流程
+# 浏览器打开
+open http://localhost:8000
+```
 
-1. 修改文件
-2. git add / commit / push
-3. Vercel 手动 API 触发部署
-4. 无痕窗口验证
+## 部署
+
+详见 `DEPLOY.md`，支持两种方案：
+
+1. **Vercel（推荐）**：`git push` 自动部署，30 秒生效
+2. **Nginx 静态托管**：上传到服务器 + nginx 配置 + Let's Encrypt
+
+## API 对接
+
+所有 API 调用通过 `api.js` 中的 `Firefly` 对象：
+
+```javascript
+// 登录
+await Firefly.login('username', 'password');
+
+// 提交训练
+await Firefly.submitTrain(file, 'law');
+
+// 查询状态
+const data = await Firefly.getStatus(taskId);
+
+// 推理聊天
+const reply = await Firefly.chat(messages, adapterId);
+
+// 显示提示
+Firefly.showToast('训练完成！', 'success');
+```
+
+API 地址自动判断：
+- `localhost` / `127.0.0.1` → `http://106.14.220.169:8000`
+- 其他 → `https://api.firefly-lm.com`
+
+## 页面结构
+
+### 首页（index.html）
+
+```
+┌──────────────────────────────────────┐
+│ 顶栏（毛玻璃吸顶）                      │
+├──────────────────────────────────────┤
+│ Hero Bento（首屏）                      │
+│ ┌──────────────────┐ ┌────────────┐  │
+│ │ 标语 + 主CTA     │ │ 实时统计    │  │
+│ └──────────────────┘ └────────────┘  │
+│ ┌──────┐ ┌──────┐ ┌──────┐           │
+│ │GPU   │ │CPU   │ │付费  │ ← 三模式  │
+│ └──────┘ └──────┘ └──────┘           │
+├──────────────────────────────────────┤
+│ 工作流（五步闭环）                      │
+├──────────────────────────────────────┤
+│ 教育案例（李老师英语批改）               │
+├──────────────────────────────────────┤
+│ 隐私承诺（三模式分说）                  │
+├──────────────────────────────────────┤
+│ CTA + 页脚                              │
+└──────────────────────────────────────┘
+```
+
+### 工作区（workspace.html）
+
+```
+┌──────────────────────────────────────┐
+│ 顶栏（积分 + 用户名 + 退出）           │
+├──────────┬───────────────────────────┤
+│          │ 上传数据 / 自动生成           │
+│  侧边栏  ├───────────────────────────┤
+│          │ 训练模式选择 + 进度条         │
+│  ┌────┐  ├───────────────────────────┤
+│  │上传│  │ 最近任务表格                │
+│  │生成│  ├───────────────────────────┤
+│  │训练│  │ 聚合模型下载               │
+│  │下载│  ├───────────────────────────┤
+│  │聊天│  │ 在线聊天测试               │
+│  │历史│  ├───────────────────────────┤
+│  │积分│  │ 历史记录 / 积分明细        │
+│  └────┘  └───────────────────────────┘
+└──────────────────────────────────────┘
+```
+
+## 设计令牌（CSS 变量）
+
+```css
+--bg: #0A0A0A;          /* 页面背景 */
+--surface-2: #1A1A1A;     /* 卡片背景 */
+--text: #E8E8E8;         /* 主文字 */
+--accent: #FF6B00;        /* 品牌主色 */
+--green: #4CAF50;         /* 成功/免费 */
+--blue: #2196F3;          /* 付费 */
+--radius: 12px;            /* 卡片圆角 */
+--maxw: 1180px;           /* 最大宽度 */
+```
+
+## 浏览器支持
+
+| 浏览器 | 最低版本 |
+|--------|---------|
+| Chrome | 90+ |
+| Firefox | 88+ |
+| Safari | 15+ |
+| Edge | 90+ |
+
+## License
+
+Private — Firefly LM Project
