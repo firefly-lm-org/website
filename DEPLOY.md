@@ -1,5 +1,13 @@
 # Firefly LM 官网部署指南
 
+> ## ⚠️ 部署真相（2026-08-03 钉死，防止后人踩坑）
+>
+> - **主站由本仓库（firefly-lm-org/website）驱动**。Vercel 项目名 **`website`**，域名 `firefly-lm.com` / `www.firefly-lm.com`。
+> - **旧 Vercel 项目 `firefly-website`（没连 Git 的那个）已废弃删除（2026-08-03），勿再创建/修改。** 它曾导致"推 GitHub 但线上永不更新"的假象——因为主域名绑在它名下而它没有 Git 连接。
+> - **改官网 = 推本仓库 main 分支 → Vercel 自动部署（约 30 秒生效），不用碰 Vercel 控制台。**
+> - 后端 `api.firefly-lm.com` 需 **ICP 备案通过后**由服务器（106.14.220.169）nginx 放通 443 才可用；备案期间线上页面展示正常、交互（登录/训练/聊天）暂不可达，测试期客户端直连 `http://106.14.220.169:8000`。
+> - 服务器网关实际端口是 **8000**（firefly-scheduler.service，uvicorn），不是 8080；`server_p0.py` 是 P0 规划中的独立进程，尚未部署。
+
 ## 文件清单
 
 | 文件 | 用途 |
@@ -10,95 +18,31 @@
 | `api.js` | 共享 API 封装（fetch 封装、auth、toast、格式化） |
 | `DEPLOY.md` | 本文件 |
 
-## 部署方式一：Vercel（推荐）
+## 部署方式（Vercel，唯一推荐）
 
-### 1. 推送到 GitHub
+本仓库已连接 Vercel 项目 `website`（Git 集成，production branch = main）。
+
+### 更新线上 = 推 main
 
 ```bash
-cd firefly-website
-git init
 git add .
-git commit -m "feat: Firefly LM 官网 v0.6.3"
-git remote add origin https://github.com/firefly-lm-org/firefly-website.git
-git push -u origin main
+git commit -m "feat: xxx"
+git push origin main
+# Vercel 自动部署，约 30 秒生效，无需操作控制台
 ```
 
-### 2. 连接 Vercel
+### 首次在新环境连接（一般不需要做）
 
 1. 打开 https://vercel.com/new
-2. Import 你的 `firefly-lm-org/firefly-website` 仓库
-3. Framework Preset 选 `Other`（纯静态）
+2. Import `firefly-lm-org/website` 仓库
+3. Framework Preset 选 `Other`（纯静态，**不要选 Python/Node**）
 4. Build Command 留空，Output Directory 留空
-5. 点 Deploy
+5. 项目名保持 `website`，域名绑定 `firefly-lm.com` + `www.firefly-lm.com`（www 308 重定向到 apex）
 
-### 3. 自定义域名
+### 域名与证书
 
-1. Vercel 面板 → Settings → Domains
-2. 添加 `firefly-lm.com`
-3. 在域名服务商处添加 CNAME 记录指向 `cname.vercel-dns.com`
-4. 等待 SSL 证书自动签发（Let's Encrypt）
-
-### 4. 自动部署
-
-每次 `git push` 到 main 分支，Vercel 自动部署，约 30 秒生效。
-
-## 部署方式二：服务器 nginx 静态托管
-
-### 1. 上传文件
-
-```bash
-# 本地
-scp -i $env:TEMP\ff_key D:\firefly\firefly-website\* admin@106.14.220.169:/tmp/website/
-
-# SSH
-ssh -i $env:TEMP\ff_key admin@106.14.220.169
-sudo mkdir -p /usr/share/nginx/firefly-web
-sudo cp /tmp/website/* /usr/share/nginx/firefly-web/
-sudo chown -R nginx:nginx /usr/share/nginx/firefly-web/
-```
-
-### 2. nginx 配置
-
-```nginx
-# /etc/nginx/conf.d/firefly.conf
-server {
-    listen 80;
-    server_name firefly-lm.com www.firefly-lm.com;
-
-    root /usr/share/nginx/firefly-web;
-    index index.html;
-
-    # SPA fallback for workspace
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static assets
-    location ~* \.(css|js|png|jpg|svg)$ {
-        expires 7d;
-        add_header Cache-Control "public, max-age=604800";
-    }
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer" always;
-}
-```
-
-### 3. 重载 nginx
-
-```bash
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 4. HTTPS（Let's Encrypt）
-
-```bash
-sudo yum install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d firefly-lm.com -d www.firefly-lm.com
-# 自动续期已配置
-```
+- 域名 DNS 已指向 Vercel（CNAME → cname.vercel-dns.com），SSL 证书由 Vercel 自动签发。
+- 切勿把域名绑回已废弃的 `firefly-website` 项目。
 
 ## API 地址配置
 
@@ -109,11 +53,7 @@ sudo certbot --nginx -d firefly-lm.com -d www.firefly-lm.com
 | `localhost` / `127.0.0.1` | `http://106.14.220.169:8000` |
 | 其他（含 firefly-lm.com） | `https://api.firefly-lm.com` |
 
-切换域名只需在 DNS 添加：
-```
-api.firefly-lm.com → CNAME → cname.vercel-dns.com
-```
-或在 nginx 加一个 server block 反代到 `127.0.0.1:8000`。
+`https://api.firefly-lm.com` 需备案通过后由服务器 nginx 443 反代到 `127.0.0.1:8000` 才可用（配置见服务器 `/etc/nginx/conf.d/firefly-api.conf`，当前 80→443 301 + webroot 挑战目录）。
 
 ## 验证清单
 
@@ -131,16 +71,6 @@ api.firefly-lm.com → CNAME → cname.vercel-dns.com
 - [ ] 训练模式三选一正常
 - [ ] 移动端（iPhone Safari）打开显示正常
 - [ ] 浏览器控制台无 JS 错误
-
-## 更新流程
-
-```bash
-# 修改后
-git add .
-git commit -m "fix: 修复 xxx"
-git push
-# Vercel 自动部署，约 30 秒后生效
-```
 
 ## 回滚
 
