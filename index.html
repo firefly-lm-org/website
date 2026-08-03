@@ -1,406 +1,383 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Firefly LM — 让闲置显卡训出你自己的 AI 模型。联邦 LoRA 微调协调器，数据不出本机。">
-    <title>🔥 火种 Firefly LM — 让闲置显卡训出你自己的 AI</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Firefly LM</title>
+<style>
+  :root{
+    --bg:#fff;
+    --text:#111;
+    --muted:#666;
+    --border:#e5e5e5;
+    --accent:#111;
+    --radius:6px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    font-size:15px;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:0;font-size:inherit}
+
+  /* 容器 */
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+
+  /* 顶栏 */
+  .nav{
+    border-bottom:1px solid var(--border);
+    background:#fff;
+    position:sticky;top:0;z-index:50;
+  }
+  .nav-inner{
+    max-width:760px;margin:0 auto;
+    padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{font-weight:600;font-size:1em;letter-spacing:-0.3px}
+  .nav-links{display:flex;gap:24px;font-size:0.9em;color:var(--muted)}
+  .nav-links a:hover{color:var(--text)}
+
+  /* 主内容 */
+  main{padding:80px 0 60px}
+
+  /* Hero */
+  .hero{margin-bottom:80px}
+  .hero h1{
+    font-size:2.2em;
+    font-weight:700;
+    line-height:1.25;
+    letter-spacing:-0.5px;
+    margin-bottom:16px;
+  }
+  .hero p{
+    font-size:1.1em;
+    color:var(--muted);
+    max-width:520px;
+    margin-bottom:32px;
+  }
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+
+  /* 按钮 */
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:10px 20px;
+    border-radius:var(--radius);
+    font-size:0.95em;
+    transition:opacity .15s;
+  }
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{opacity:0.85}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-ghost:hover{background:#f5f5f5}
+
+  /* 区块通用 */
+  section{margin-bottom:80px}
+  h2{
+    font-size:1.4em;
+    font-weight:600;
+    letter-spacing:-0.3px;
+    margin-bottom:8px;
+  }
+  .section-desc{
+    color:var(--muted);
+    margin-bottom:32px;
+    font-size:0.95em;
+  }
+
+  /* 三模式 */
+  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .mode{
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .mode h3{font-size:1em;font-weight:600;margin-bottom:6px}
+  .mode p{font-size:0.88em;color:var(--muted);margin-bottom:12px}
+  .mode .tag{
+    display:inline-block;
+    font-size:0.78em;
+    color:var(--muted);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:2px 10px;
+  }
+
+  /* 工作流 */
+  .flow{display:flex;flex-direction:column;gap:0}
+  .flow-step{
+    display:flex;gap:20px;
+    padding:16px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .flow-step:last-child{border-bottom:0}
+  .flow-num{
+    flex-shrink:0;
+    width:28px;height:28px;
+    border:1px solid var(--border);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.85em;
+    color:var(--muted);
+  }
+  .flow-text strong{display:block;font-weight:500;margin-bottom:2px}
+  .flow-text span{font-size:0.88em;color:var(--muted)}
+
+  /* 案例 */
+  .case{
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px;
+  }
+  .case p{margin-bottom:8px}
+  .case .case-meta{font-size:0.85em;color:var(--muted)}
+
+  /* 隐私 */
+  .privacy{font-size:0.92em;color:var(--muted)}
+  .privacy ul{list-style:none;padding:0}
+  .privacy li{padding:6px 0;border-bottom:1px solid var(--border)}
+  .privacy li:last-child{border-bottom:0}
+
+  /* 页脚 */
+  footer{
+    border-top:1px solid var(--border);
+    padding:32px 0;
+    font-size:0.85em;
+    color:var(--muted);
+  }
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  footer a{color:var(--muted)}
+  footer a:hover{color:var(--text)}
+
+  /* 登录弹窗 */
+  .modal-overlay{
+    display:none;
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.3);
+    z-index:100;
+    align-items:center;justify-content:center;
+  }
+  .modal-overlay.show{display:flex}
+  .modal{
+    background:#fff;
+    border-radius:var(--radius);
+    padding:32px;
+    width:360px;
+    max-width:90vw;
+    border:1px solid var(--border);
+  }
+  .modal h3{font-size:1.1em;font-weight:600;margin-bottom:20px}
+  .modal label{display:block;font-size:0.85em;color:var(--muted);margin-bottom:6px}
+  .modal input{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    font-size:0.95em;
+    margin-bottom:16px;
+    font-family:inherit;
+    color:var(--text);
+    background:#fff;
+  }
+  .modal input:focus{outline:none;border-color:#999}
+  .modal .btn{width:100%;justify-content:center;margin-bottom:12px}
+  .modal .switch{font-size:0.85em;color:var(--muted);text-align:center}
+  .modal .switch a{color:var(--text);text-decoration:underline}
+
+  /* 响应式 */
+  @media(max-width:640px){
+    .hero h1{font-size:1.7em}
+    .modes{grid-template-columns:1fr}
+    .nav-links a:not(.always-show){display:none}
+    main{padding:48px 0 40px}
+    section{margin-bottom:56px}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
 </head>
 <body>
 
-    <!-- ========= Navigation ========= -->
-    <nav class="nav" id="nav">
-        <a href="index.html" class="nav-brand">
-            <span class="logo">🔥</span>
-            <span>火种 Firefly LM</span>
-        </a>
-        <div class="nav-links" id="navLinks">
-            <a href="#modes">训练模式</a>
-            <a href="#workflow">工作流</a>
-            <a href="#education">教育案例</a>
-            <a href="#privacy">隐私</a>
-            <a href="#" class="nav-cta" onclick="openModal('login')">登录 / 注册</a>
-        </div>
-        <button class="nav-toggle" onclick="toggleNav()">☰</button>
-    </nav>
-
-    <!-- ========= Hero Section ========= -->
-    <section class="hero">
-        <div class="wrap">
-            <div class="bento">
-                <!-- Hero Title -->
-                <div class="card hero-title">
-                    <div class="hero-badge">🔥 v0.6.3 · 公开测试</div>
-                    <h1>让闲置显卡<br>训出<span class="highlight">你自己的 AI</span></h1>
-                    <p>联邦 LoRA 微调协调器。数据不出本机，只聚合适配器权重，30 分钟跑通第一个闭环。</p>
-                    <div class="hero-actions">
-                        <button class="btn" onclick="openModal('login')">
-                            🚀 立即体验
-                        </button>
-                        <a class="btn ghost" href="#workflow">看工作流 ↓</a>
-                    </div>
-                </div>
-
-                <!-- Hero Side Stats -->
-                <div class="hero-side">
-                    <div class="card stat-card glass">
-                        <div class="num" id="statNodes">–</div>
-                        <div class="label">在线节点</div>
-                        <div class="trend pulse">实时更新中</div>
-                    </div>
-                    <div class="card stat-card glass">
-                        <div class="num" id="statRounds">–</div>
-                        <div class="label">已完成聚合轮次</div>
-                        <div class="trend pulse">联邦协作中</div>
-                    </div>
-                    <div class="card stat-card glass">
-                        <div class="num" id="statPoints">–</div>
-                        <div class="label">累计积分发放</div>
-                        <div class="trend pulse">持续增长</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========= Mode Cards ========= -->
-    <section class="section" id="modes">
-        <div class="wrap">
-            <div class="section-head">
-                <h2>三种训练模式，按需选择</h2>
-                <p>系统自动检测你的设备配置，推荐最合适的训练方式。你不需要了解技术细节。</p>
-            </div>
-            <div class="bento">
-                <div class="card mode-card gpu">
-                    <div class="icon">🖥️</div>
-                    <h3>本地 GPU 训练</h3>
-                    <p>你的数据留在本机，本地完成 QLoRA 微调，只上传几 MB 的 LoRA 权重。</p>
-                    <span class="tag">免费 · 推荐</span>
-                </div>
-                <div class="card mode-card cpu">
-                    <div class="icon">⚙️</div>
-                    <h3>CPU 演示训练</h3>
-                    <p>没有显卡？5 分钟跑通完整流程，效果为演示级，适合先体验联邦流程。</p>
-                    <span class="tag">免费 · 演示</span>
-                </div>
-                <div class="card mode-card paid">
-                    <div class="icon">☁️</div>
-                    <h3>付费代训练</h3>
-                    <p>无 GPU 也想获得更好效果？¥9.9 让服务器 GPU 代跑，约 30 分钟完成。</p>
-                    <span class="tag">¥9.9 / 次</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========= Workflow ========= -->
-    <section class="section" id="workflow" style="padding-top:0;">
-        <div class="wrap">
-            <div class="section-head">
-                <h2>训练流程，五步闭环</h2>
-                <p>从上传数据到获得聚合模型，全程自动化。你的数据永不离开本机。</p>
-            </div>
-            <div class="bento">
-                <div class="card workflow">
-                    <div class="flow-steps">
-                        <div class="flow-step">
-                            <div class="step-num">1</div>
-                            <h4>上传数据</h4>
-                            <p>JSONL 格式，20-200 条即可</p>
-                            <span class="flow-arrow">→</span>
-                        </div>
-                        <div class="flow-step">
-                            <div class="step-num">2</div>
-                            <h4>本地训练</h4>
-                            <p>QLoRA 微调，数据不出本机</p>
-                            <span class="flow-arrow">→</span>
-                        </div>
-                        <div class="flow-step">
-                            <div class="step-num">3</div>
-                            <h4>上传权重</h4>
-                            <p>只传 LoRA 适配器（几 MB）</p>
-                            <span class="flow-arrow">→</span>
-                        </div>
-                        <div class="flow-step">
-                            <div class="step-num">4</div>
-                            <h4>联邦聚合</h4>
-                            <p>FedAvg 加权平均，≥3 节点触发</p>
-                            <span class="flow-arrow">→</span>
-                        </div>
-                        <div class="flow-step">
-                            <div class="step-num">5</div>
-                            <h4>下载使用</h4>
-                            <p>获得更强的聚合模型</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========= Education Case ========= -->
-    <section class="section" id="education" style="padding-top:0;">
-        <div class="wrap">
-            <div class="section-head">
-                <h2>教育赋能：真实案例</h2>
-                <p>李老师，高中英语老师，用火种训练了一个批改英语作文的 AI 助手。</p>
-            </div>
-            <div class="bento">
-                <div class="card edu-case">
-                    <div class="edu-content">
-                        <h3>📚 李老师的英语作文批改助手</h3>
-                        <p>李老师整理了 20 篇学生作文片段和批改结果，上传到火种平台，5 分钟后获得一个专属 LoRA 适配器。</p>
-                        <ul class="edu-list">
-                            <li><span class="check">✓</span> 学生拍照上传作文 → AI 自动批改</li>
-                            <li><span class="check">✓</span> 批改准确率从 60% → 85%</li>
-                            <li><span class="check">✓</span> 每周节省 5 小时批改时间</li>
-                            <li><span class="check">✓</span> 权重可部署到班级小程序</li>
-                        </ul>
-                    </div>
-                    <div class="edu-demo">
-                        <div><span class="label">学生输入：</span></div>
-                        <div class="user">"He go to school yesterday and meet his friends."</div>
-                        <br>
-                        <div><span class="label">AI 批改：</span></div>
-                        <div class="ai">"He went to school yesterday and met his friends."</div>
-                        <br>
-                        <div><span class="label">修改说明：</span></div>
-                        <div style="color:var(--text-dim);">"go→went (过去式), meet→met (过去式)"</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========= Privacy ========= -->
-    <section class="section" id="privacy" style="padding-top:0;">
-        <div class="wrap">
-            <div class="bento">
-                <div class="card privacy-section">
-                    <h3>🔒 隐私承诺</h3>
-                    <p style="color:var(--text-dim);font-size:0.92em;">不同训练模式下，你的数据走向完全不同。我们对此完全透明。</p>
-                    <div class="privacy-grid">
-                        <div class="privacy-item">
-                            <div class="p-title">🖥️ 本地训练模式</div>
-                            <div class="p-desc">原始数据永不离开本机，只上传 LoRA 权重文件（不含原始数据）</div>
-                        </div>
-                        <div class="privacy-item">
-                            <div class="p-title">⚙️ CPU 提交模式</div>
-                            <div class="p-desc">数据上传到服务器处理，训练完成后可选择自动删除</div>
-                        </div>
-                        <div class="privacy-item">
-                            <div class="p-title">☁️ 付费代训练</div>
-                            <div class="p-desc">数据在 GPU 服务器上处理，任务完成后数据保留 7 天自动清除</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========= CTA ========= -->
-    <section class="cta-section">
-        <div class="wrap">
-            <h2>萤火虽微，聚之成炬</h2>
-            <p>首批 20 名测试者，先到先得。你的权重将直接进入聚合模型。</p>
-            <div class="cta-buttons">
-                <button class="btn" onclick="openModal('register')">🚀 立即加入</button>
-                <a class="btn ghost" href="https://github.com/firefly-lm-org/firefly-client" target="_blank" rel="noopener">📦 GitHub 仓库</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========= Footer ========= -->
-    <footer class="footer">
-        <div class="wrap">
-            <div class="footer-content">
-                <div class="footer-copy">© 2026 Firefly LM · 火种 — 让每个人都能拥有自己的 AI 模型</div>
-                <div class="footer-links">
-                    <a href="#privacy">隐私政策</a>
-                    <a href="https://github.com/firefly-lm-org/firefly-client" target="_blank" rel="noopener">GitHub</a>
-                    <a href="#" onclick="openModal('login')">登录</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- ========= Login/Register Modal ========= -->
-    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
-        <div class="modal" id="loginModal">
-            <button class="close" onclick="closeModal()">×</button>
-            <h3 id="modalTitle">登录</h3>
-            <p class="sub" id="modalSub">登录后开始你的第一次训练</p>
-
-            <label for="username">用户名</label>
-            <input id="username" placeholder="输入用户名" autocomplete="username">
-
-            <label for="password">密码</label>
-            <input id="password" type="password" placeholder="输入密码" autocomplete="current-password">
-
-            <label for="email" id="emailLabel" style="display:none;">邮箱（可选）</label>
-            <input id="email" type="email" placeholder="your@email.com" style="display:none;" autocomplete="email">
-
-            <div class="form-msg" id="formMsg"></div>
-
-            <button class="btn" id="submitBtn" onclick="handleSubmit()">登录</button>
-
-            <div class="switch" id="switchText">
-                没有账号？<a onclick="switchMode()">立即注册</a>
-            </div>
-        </div>
+<!-- 顶栏 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">Firefly LM</a>
+    <div class="nav-links">
+      <a href="#modes">训练模式</a>
+      <a href="#flow">工作流</a>
+      <a href="#privacy">隐私</a>
+      <a href="#" onclick="openModal('login')" class="always-show">登录</a>
     </div>
+  </div>
+</nav>
 
-    <!-- ========= JavaScript ========= -->
-    <script src="api.js"></script>
-    <script>
-        // ========= Nav Toggle (Mobile) =========
-        function toggleNav() {
-            document.getElementById('navLinks').classList.toggle('show');
-        }
+<main class="wrap">
 
-        // ========= Modal =========
-        let isLoginMode = true;
+  <!-- Hero -->
+  <section class="hero">
+    <h1>在你的数据上训练<br>属于自己的语言模型</h1>
+    <p>联邦 LoRA 微调工具。数据留在本地，只上传模型差量，多节点聚合后获得更好的效果。</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="openModal('login')">开始使用</button>
+      <a class="btn btn-ghost" href="#flow">查看工作流</a>
+    </div>
+  </section>
 
-        function openModal(mode) {
-            const overlay = document.getElementById('modalOverlay');
-            overlay.classList.add('show');
-            if (mode === 'register') {
-                isLoginMode = false;
-                document.getElementById('modalTitle').textContent = '注册';
-                document.getElementById('modalSub').textContent = '创建账号，开始联邦训练之旅';
-                document.getElementById('submitBtn').textContent = '注册';
-                document.getElementById('switchText').innerHTML = '已有账号？<a onclick="switchMode()">立即登录</a>';
-                document.getElementById('emailLabel').style.display = 'block';
-                document.getElementById('email').style.display = 'block';
-            } else {
-                isLoginMode = true;
-                document.getElementById('modalTitle').textContent = '登录';
-                document.getElementById('modalSub').textContent = '登录后开始你的第一次训练';
-                document.getElementById('submitBtn').textContent = '登录';
-                document.getElementById('switchText').innerHTML = '没有账号？<a onclick="switchMode()">立即注册</a>';
-                document.getElementById('emailLabel').style.display = 'none';
-                document.getElementById('email').style.display = 'none';
-            }
-            // If already logged in
-            if (Firefly.getToken() && isLoginMode) {
-                const saved = Firefly.getUser();
-                if (saved) {
-                    showMsg(`已登录为 ${saved}，正在跳转...`, 'success');
-                    setTimeout(() => { closeModal(); location.href = 'workspace.html'; }, 1000);
-                }
-            }
-        }
+  <!-- 三模式 -->
+  <section id="modes">
+    <h2>训练模式</h2>
+    <p class="section-desc">三种方式，按需选择。</p>
+    <div class="modes">
+      <div class="mode">
+        <h3>本地 GPU</h3>
+        <p>数据不出本机，需要 GPU ≥ 8GB。</p>
+        <span class="tag">免费</span>
+      </div>
+      <div class="mode">
+        <h3>CPU 演示</h3>
+        <p>无需显卡，效果为演示级别。</p>
+        <span class="tag">免费</span>
+      </div>
+      <div class="mode">
+        <h3>付费代训练</h3>
+        <p>服务器 GPU 代跑，优先排队。</p>
+        <span class="tag">¥9.9 / 次</span>
+      </div>
+    </div>
+  </section>
 
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('show');
-            const msg = document.getElementById('formMsg');
-            msg.className = 'form-msg';
-            msg.textContent = '';
-        }
+  <!-- 工作流 -->
+  <section id="flow">
+    <h2>工作流</h2>
+    <p class="section-desc">从数据到可用模型的完整链路。</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-text">
+          <strong>准备数据</strong>
+          <span>上传 JSONL 格式问答对，或自动生成。</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-text">
+          <strong>本地训练</strong>
+          <span>在你的机器上微调 LoRA，原始数据不离开设备。</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-text">
+          <strong>上传权重</strong>
+          <span>只上传 LoRA 差量文件，不上传原始数据。</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-text">
+          <strong>联邦聚合</strong>
+          <span>同领域 ≥3 节点完成后自动聚合，生成更好的模型。</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-text">
+          <strong>下载使用</strong>
+          <span>聚合后的权重可下载，用于本地推理验证。</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        function switchMode() {
-            openModal(isLoginMode ? 'register' : 'login');
-        }
+  <!-- 案例 -->
+  <section id="case">
+    <h2>案例</h2>
+    <p class="section-desc">真实使用场景。</p>
+    <div class="case">
+      <p><strong>某律所联盟</strong></p>
+      <p style="color:var(--muted)">3 家律所各自用脱敏问答数据本地训练，联邦聚合后法律问答准确率提升 8%。数据全程未离开任何一家律所。</p>
+      <p class="case-meta">领域：法律 · 节点数：3 · 聚合轮次：2</p>
+    </div>
+  </section>
 
-        // ========= Form Submit =========
-        async function handleSubmit() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const email = document.getElementById('email').value.trim();
-            const msgEl = document.getElementById('formMsg');
+  <!-- 隐私 -->
+  <section id="privacy">
+    <h2>隐私</h2>
+    <p class="section-desc">数据如何流动，一目了然。</p>
+    <div class="privacy">
+      <ul>
+        <li><strong>本地 GPU 训练</strong> — 数据不出本机 ✅</li>
+        <li><strong>CPU / 付费训练</strong> — 数据上传至服务器处理 ⚠️</li>
+        <li><strong>联邦聚合</strong> — 仅交换 LoRA 权重差量，不交换原始数据 ✅</li>
+        <li><strong>聊天推理</strong> — 输入发送至服务器生成回复，不用于训练 ⚠️</li>
+      </ul>
+    </div>
+  </section>
 
-            if (!username || !password) {
-                showMsg('用户名和密码不能为空', 'error');
-                return;
-            }
+</main>
 
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.textContent = '处理中...';
+<!-- 页脚 -->
+<footer>
+  <div class="wrap">
+    <span>© 2026 Firefly LM</span>
+    <span>
+      <a href="https://github.com/firefly-lm-org" style="margin-right:16px">GitHub</a>
+      <a href="#" onclick="openModal('login')">登录</a>
+    </span>
+  </div>
+</footer>
 
-            try {
-                if (isLoginMode) {
-                    await Firefly.login(username, password);
-                    showMsg(`✅ 欢迎回来，${username}！`, 'success');
-                    setTimeout(() => {
-                        closeModal();
-                        location.href = 'workspace.html';
-                    }, 1200);
-                } else {
-                    await Firefly.register(username, password, email);
-                    showMsg('✅ 注册成功！正在自动登录...', 'success');
-                    setTimeout(() => Firefly.login(username, password), 800)
-                        .then(() => {
-                            closeModal();
-                            location.href = 'workspace.html';
-                        });
-                }
-            } catch (e) {
-                showMsg(e.message || '请求失败', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = isLoginMode ? '登录' : '注册';
-            }
-        }
+<!-- 登录弹窗 -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modalTitle">登录</h3>
+    <label>用户名</label>
+    <input id="username" placeholder="请输入用户名">
+    <label>密码</label>
+    <input id="password" type="password" placeholder="请输入密码">
+    <button class="btn btn-primary" id="modalBtn" onclick="handleAuth()">登录</button>
+    <p class="switch" id="modalSwitch">
+      没有账号？<a href="#" onclick="switchAuth()">注册</a>
+    </p>
+  </div>
+</div>
 
-        function showMsg(text, type) {
-            const el = document.getElementById('formMsg');
-            el.textContent = text;
-            el.className = `form-msg ${type}`;
-        }
+<script>
+  let mode = 'login';
 
-        // ========= Stats Polling =========
-        async function fetchStats() {
-            try {
-                const r = await fetch(`${Firefly.API}/api/v1/aggregation/rounds?limit=100`);
-                if (r.ok) {
-                    const data = await r.json();
-                    const rounds = data.rounds || [];
-                    document.getElementById('statRounds').textContent = rounds.length;
-                }
-                const q = await fetch(`${Firefly.API}/api/v1/train/queue-info`);
-                if (q.ok) {
-                    const qd = await q.json();
-                    document.getElementById('statNodes').textContent = (qd.active_nodes || 0);
-                    document.getElementById('statPoints').textContent = (qd.total_points || 0);
-                }
-            } catch (e) {
-                // Fallback demo data
-                document.getElementById('statNodes').textContent = '12';
-                document.getElementById('statRounds').textContent = '7';
-                document.getElementById('statPoints').textContent = '340';
-            }
-        }
+  function openModal(m){mode=m;renderModal();document.getElementById('modal').classList.add('show')}
+  function closeModal(){document.getElementById('modal').classList.remove('show')}
+  function switchAuth(){mode=mode==='login'?'register':'login';renderModal()}
 
-        // ========= Version Check =========
-        async function checkVersion() {
-            try {
-                const data = await Firefly.getVersion();
-                if (!data) return;
-                const v = document.createElement('div');
-                v.style.cssText = 'position:fixed;bottom:16px;right:16px;background:rgba(255,107,0,0.15);border:1px solid rgba(255,107,0,0.3);padding:8px 14px;border-radius:8px;font-size:0.82em;z-index:40;cursor:pointer;';
-                v.innerHTML = `🔥 v${data.version} 可用 · <a href="${data.download_url}" target="_blank" style="color:#FF6B00;">更新</a>`;
-                document.body.appendChild(v);
-            } catch(e) {}
-        }
+  function renderModal(){
+    document.getElementById('modalTitle').textContent = mode==='login'?'登录':'注册';
+    document.getElementById('modalBtn').textContent = mode==='login'?'登录':'注册';
+    document.getElementById('modalSwitch').innerHTML = mode==='login'
+      ? '没有账号？<a href="#" onclick="switchAuth()">注册</a>'
+      : '已有账号？<a href="#" onclick="switchAuth()">登录</a>';
+  }
 
-        // ========= Init =========
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
+  async function handleAuth(){
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    if(!u||!p) return alert('请输入用户名和密码');
+    const url = mode==='login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
+    try{
+      const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+      const d = await r.json();
+      if(d.access_token){localStorage.setItem('ff_token',d.access_token);closeModal();alert('登录成功')}
+      else{alert(d.detail||'操作失败')}
+    }catch(e){alert('网络错误: '+e.message)}
+  }
 
-        // Check if already logged in → redirect to workspace
-        if (Firefly.getToken()) {
-            // Auto-redirect after a short delay
-            // location.href = 'workspace.html';
-        }
-
-        fetchStats();
-        checkVersion();
-        setInterval(fetchStats, 30000);
-    </script>
+  // ESC 关闭
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+</script>
 
 </body>
 </html>
