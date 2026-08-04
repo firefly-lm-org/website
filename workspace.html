@@ -1,470 +1,499 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Firefly LM · 工作区</title>
-<style>
-  :root{
-    --bg:#fff;
-    --text:#111;
-    --muted:#666;
-    --border:#e5e5e5;
-    --accent:#111;
-    --green:#16a34a;
-    --red:#dc2626;
-    --blue:#2563eb;
-    --radius:6px;
-    --sidebar-w:180px;
-    --nav-h:52px;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    font-size:14.5px;
-    line-height:1.65;
-    overflow:hidden;
-    height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  a{color:inherit;text-decoration:none}
-  button{font-family:inherit;cursor:pointer;border:0;font-size:inherit}
-
-  /* 顶栏 */
-  .nav{
-    position:fixed;top:0;left:0;right:0;z-index:50;
-    height:var(--nav-h);
-    display:flex;align-items:center;justify-content:space-between;
-    padding:0 20px;
-    background:#fff;
-    border-bottom:1px solid var(--border);
-  }
-  .brand{font-weight:600;font-size:1em}
-  .nav-right{display:flex;gap:16px;align-items:center;font-size:0.88em;color:var(--muted)}
-  .nav-right a:hover{color:var(--text)}
-
-  /* 布局 */
-  .layout{display:flex;margin-top:var(--nav-h);height:calc(100vh - var(--nav-h))}
-
-  /* 侧边栏 */
-  .sidebar{
-    width:var(--sidebar-w);
-    border-right:1px solid var(--border);
-    padding:12px 0;
-    overflow-y:auto;
-    flex-shrink:0;
-  }
-  .sidebar-item{
-    display:flex;align-items:center;gap:10px;
-    padding:9px 20px;
-    color:var(--muted);
-    cursor:pointer;
-    font-size:0.9em;
-    border-left:2px solid transparent;
-    transition:color .12s;
-  }
-  .sidebar-item:hover{color:var(--text)}
-  .sidebar-item.active{color:var(--text);border-left-color:var(--text);font-weight:500}
-
-  /* 工作区 */
-  .workspace{flex:1;padding:28px 32px;overflow-y:auto}
-  .panel{display:none;max-width:680px}
-  .panel.active{display:block}
-
-  /* 卡片 */
-  .card{
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:20px;
-    margin-bottom:14px;
-  }
-  .card h3{font-size:1em;font-weight:600;margin-bottom:12px}
-
-  /* 上传区 */
-  .upload{
-    border:1.5px dashed var(--border);
-    border-radius:var(--radius);
-    padding:40px 20px;
-    text-align:center;
-    cursor:pointer;
-    transition:border-color .15s;
-  }
-  .upload:hover,.upload.dragover{border-color:#999}
-  .upload p{color:var(--muted);font-size:0.9em;margin-top:8px}
-
-  /* 按钮 */
-  .btn{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:9px 18px;
-    border-radius:var(--radius);
-    font-size:0.9em;
-    background:var(--accent);
-    color:#fff;
-    transition:opacity .12s;
-  }
-  .btn:hover{opacity:0.85}
-  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
-  .btn.ghost:hover{background:#f5f5f5}
-  .btn.small{padding:5px 10px;font-size:0.8em}
-  .btn.full{width:100%;justify-content:center;margin-top:12px}
-
-  /* 模式选择 */
-  .modes{display:flex;gap:10px;flex-wrap:wrap}
-  .mode{
-    flex:1;min-width:130px;
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:14px;
-    cursor:pointer;
-    text-align:center;
-    transition:border-color .12s;
-  }
-  .mode:hover{border-color:#999}
-  .mode.selected{border-color:var(--text);background:#fafafa}
-  .mode h4{font-size:0.9em;font-weight:600;margin-bottom:3px}
-  .mode p{font-size:0.8em;color:var(--muted)}
-  .mode .tag{display:inline-block;margin-top:6px;font-size:0.75em;color:var(--muted)}
-
-  /* 进度条 */
-  .progress-track{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin:6px 0}
-  .progress-bar{height:100%;background:var(--text);border-radius:3px;transition:width .4s;width:0%}
-  .stats{display:flex;gap:24px;margin-top:10px}
-  .stats div{text-align:center}
-  .stats .label{font-size:0.78em;color:var(--muted)}
-  .stats .val{font-size:1em;font-weight:600;margin-top:1px}
-
-  /* 表格 */
-  table{width:100%;border-collapse:collapse;font-size:0.86em}
-  th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border)}
-  td{padding:8px 10px;border-bottom:1px solid #f5f5f5}
-  .badge{font-size:0.78em;padding:1px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
-  .badge-ok{color:var(--green);border-color:#bbf7d0;background:#f0fdf4}
-  .badge-run{color:#ca8a04;border-color:#fef08a;background:#fefce8}
-  .badge-fail{color:var(--red);border-color:#fecaca;background:#fef2f2}
-
-  /* 聊天 */
-  .chat-box{
-    height:300px;overflow-y:auto;
-    padding:14px;
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    margin-bottom:10px;
-    display:flex;flex-direction:column;gap:10px;
-  }
-  .msg{display:flex;gap:8px;max-width:85%}
-  .msg.user{margin-left:auto;flex-direction:row-reverse}
-  .bubble{
-    padding:9px 13px;
-    border-radius:10px;
-    font-size:0.88em;
-    line-height:1.5;
-  }
-  .msg.user .bubble{background:var(--text);color:#fff;border-bottom-right-radius:3px}
-  .msg.ai .bubble{background:#f5f5f5;border:1px solid var(--border);border-bottom-left-radius:3px}
-  .chat-input{display:flex;gap:8px}
-  .chat-input input{
-    flex:1;padding:9px 13px;
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    font-size:0.9em;
-    font-family:inherit;
-    color:var(--text);
-  }
-  .chat-input input:focus{outline:none;border-color:#999}
-
-  /* 积分 */
-  .points{text-align:center;padding:24px 0}
-  .points .num{font-size:2.8em;font-weight:700}
-  .points .lbl{color:var(--muted);font-size:0.88em;margin-top:2px}
-
-  /* 下拉 */
-  select{
-    width:100%;padding:8px 10px;
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    font-size:0.88em;
-    font-family:inherit;
-    color:var(--text);
-    background:#fff;
-    margin-top:4px;
-  }
-
-  /* 动画 */
-  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;w}}
-  .msg{animation:fade .2s}
-
-  /* 响应式 */
-  @media(max-width:640px){
-    .sidebar{display:none}
-    .workspace{padding:20px 16px}
-    .modes{flex-direction:column}
-    .mode{min-width:100%}
-  }
-  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工作台 — Firefly LM</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- 顶栏 -->
-<nav class="nav">
-  <span class="brand">Firefly LM</span>
-  <div class="nav-right">
-    <a href="index.html">首页</a>
-    <span id="navUser">未登录</span>
-  </div>
-</nav>
-
-<div class="layout">
-
-<!-- 侧边栏 -->
-<aside class="sidebar">
-  <div class="sidebar-item active" data-panel="upload" onclick="switchPanel('upload')">上传数据</div>
-  <div class="sidebar-item" data-panel="generate" onclick="switchPanel('generate')">自动生成</div>
-  <div class="sidebar-item" data-panel="status" onclick="switchPanel('status')">训练状态</div>
-  <div class="sidebar-item" data-panel="download" onclick="switchPanel('download')">下载权重</div>
-  <div class="sidebar-item" data-panel="chat" onclick="switchPanel('chat')">在线测试</div>
-  <div class="sidebar-item" data-panel="history" onclick="switchPanel('history')">历史记录</div>
-  <div class="sidebar-item" data-panel="points" onclick="switchPanel('points')">积分</div>
-</aside>
-
-<!-- 工作区 -->
-<main class="workspace">
-
-  <!-- 上传数据 -->
-  <div class="panel active" id="panel-upload">
-    <div class="card">
-      <h3>上传数据</h3>
-      <div class="upload" id="uploadZone"
-           ondragover="event.preventDefault();this.classList.add('dragover')"
-           ondragleave="this.classList.remove('dragover')"
-           ondrop="event.preventDefault();this.classList.remove('dragover');handleFile(event.dataTransfer.files[0])">
-        <p style="font-size:1.1em">拖拽文件到此处，或点击选择</p>
-        <p>支持 .jsonl 格式</p>
-        <input type="file" id="fileInput" accept=".jsonl" hidden onchange="handleFile(this.files[0])">
-        <button class="btn" style="margin-top:14px" onclick="document.getElementById('fileInput').click()">选择文件</button>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-logo">🔥 Firefly LM</a>
+      <div class="nav-menu">
+        <a href="/" id="navHome">首页</a>
+        <a href="javascript:logout()" class="nav-login">退出</a>
       </div>
     </div>
-    <div class="card">
-      <h3>训练模式</h3>
-      <div class="modes">
-        <div class="mode selected" data-mode="gpu" onclick="selectMode(this)">
-          <h4>本地 GPU</h4>
-          <p>数据不出本机</p>
-          <span class="tag">免费</span>
+  </nav>
+
+  <div class="ws-layout">
+    <aside class="ws-sidebar">
+      <div class="ws-user" id="wsUserInfo">
+        <span class="ws-user-avatar">👤</span>
+        <span class="ws-user-name" id="wsUserName">加载中...</span>
+      </div>
+      <nav class="ws-nav">
+        <a href="#panel-data" class="ws-nav-item active" onclick="switchPanel('panel-data')">📤 数据上传</a>
+        <a href="#panel-seed" class="ws-nav-item" onclick="switchPanel('panel-seed')">🌱 种子生成</a>
+        <a href="#panel-train" class="ws-nav-item" onclick="switchPanel('panel-train')">🎯 训练管理</a>
+        <a href="#panel-agg" class="ws-nav-item" onclick="switchPanel('panel-agg')">🔗 联邦聚合</a>
+        <a href="#panel-download" class="ws-nav-item" onclick="switchPanel('panel-download')">📦 模型下载</a>
+        <a href="#panel-chat" class="ws-nav-item" onclick="switchPanel('panel-chat')">💬 推理聊天</a>
+        <a href="#panel-points" class="ws-nav-item" onclick="switchPanel('panel-points')">⭐ 积分管理</a>
+        <a href="#panel-audit" class="ws-nav-item" onclick="switchPanel('panel-audit')">📋 审计日志</a>
+      </nav>
+    </aside>
+
+    <main class="ws-main">
+
+      <section id="panel-data" class="ws-panel active">
+        <h2 class="ws-panel-title">数据上传</h2>
+        <p class="ws-panel-desc">上传脱敏后的 JSONL 格式问答对文件。每行一个 JSON 对象，包含 question 和 answer 字段。</p>
+        <div class="ws-card">
+          <div class="ws-form-row">
+            <label class="ws-label">领域</label>
+            <select id="dataDomain" class="ws-select">
+              <option value="law">法务</option>
+              <option value="vet_feline">兽医（猫内科）</option>
+              <option value="vet_exotic">兽医（异宠）</option>
+              <option value="med_chronic">医疗（慢病）</option>
+              <option value="fin_compliance">金融（合规）</option>
+              <option value="ind_equipment">工业（设备维护）</option>
+              <option value="edu_analysis">教育（学情分析）</option>
+            </select>
+          </div>
+          <div class="ws-form-row">
+            <label class="ws-label">JSONL 文件</label>
+            <div class="ws-upload-zone" id="uploadZone">
+              <p>点击选择或拖拽文件到此处</p>
+              <input type="file" id="dataFile" accept=".jsonl,.json,.txt" style="display:none;">
+            </div>
+          </div>
+          <div id="uploadResult" class="ws-result"></div>
+          <button class="btn btn--primary" onclick="handleUpload()">上传数据</button>
         </div>
-        <div class="mode" data-mode="cpu" onclick="selectMode(this)">
-          <h4>CPU 演示</h4>
-          <p>无需显卡</p>
-          <span class="tag">免费</span>
+      </section>
+
+      <section id="panel-seed" class="ws-panel">
+        <h2 class="ws-panel-title">种子数据生成</h2>
+        <p class="ws-panel-desc">没有训练数据？让系统调用智谱 API 自动生成 60 条高质量问答对。</p>
+        <div class="ws-card">
+          <div class="ws-form-row">
+            <label class="ws-label">生成领域</label>
+            <select id="seedDomain" class="ws-select">
+              <option value="law">法务</option>
+              <option value="vet_feline">兽医（猫内科）</option>
+              <option value="vet_exotic">兽医（异宠）</option>
+              <option value="med_chronic">医疗（慢病）</option>
+              <option value="fin_compliance">金融（合规）</option>
+              <option value="ind_equipment">工业（设备维护）</option>
+              <option value="edu_analysis">教育（学情分析）</option>
+            </select>
+          </div>
+          <div id="seedResult" class="ws-result"></div>
+          <button class="btn btn--primary" onclick="handleGenerate()">生成种子数据</button>
         </div>
-        <div class="mode" data-mode="paid" onclick="selectMode(this)">
-          <h4>付费代训练</h4>
-          <p>服务器 GPU</p>
-          <span class="tag">¥9.9</span>
+      </section>
+
+      <section id="panel-train" class="ws-panel">
+        <h2 class="ws-panel-title">训练管理</h2>
+        <p class="ws-panel-desc">启动 LoRA 微调训练任务，实时查看训练进度。</p>
+        <div class="ws-card">
+          <div class="ws-form-row">
+            <label class="ws-label">训练领域</label>
+            <select id="trainDomain" class="ws-select">
+              <option value="law">法务</option>
+              <option value="vet_feline">兽医（猫内科）</option>
+              <option value="vet_exotic">兽医（异宠）</option>
+              <option value="med_chronic">医疗（慢病）</option>
+              <option value="fin_compliance">金融（合规）</option>
+              <option value="ind_equipment">工业（设备维护）</option>
+              <option value="edu_analysis">教育（学情分析）</option>
+            </select>
+          </div>
+          <div class="ws-form-row">
+            <label class="ws-label">训练模式</label>
+            <div class="ws-radio-group">
+              <label class="ws-radio"><input type="radio" name="trainMode" value="gpu" checked> 本地 GPU（免费）</label>
+              <label class="ws-radio"><input type="radio" name="trainMode" value="cpu"> CPU 演示（免费）</label>
+            </div>
+          </div>
+          <div class="ws-form-row ws-btn-row">
+            <button class="btn btn--primary" onclick="handleStartTraining()">启动训练</button>
+          </div>
+          <div id="trainProgress" class="ws-result"></div>
+          <div class="ws-history">
+            <h4>训练历史</h4>
+            <table class="ws-table" id="trainHistoryTable">
+              <thead><tr><th>任务 ID</th><th>领域</th><th>状态</th><th>进度</th></tr></thead>
+              <tbody id="trainHistoryBody"></tbody>
+            </table>
+          </div>
         </div>
-      </div>
-      <button class="btn full" onclick="startTraining()">开始训练</button>
-    </div>
-  </div>
+      </section>
 
-  <!-- 自动生成 -->
-  <div class="panel" id="panel-generate">
-    <div class="card">
-      <h3>自动生成数据</h3>
-      <p style="color:var(--muted);margin-bottom:14px;font-size:0.9em">选择领域，自动生成训练数据并提交训练。</p>
-      <label style="font-size:0.85em;color:var(--muted)">领域</label>
-      <select id="genDomain">
-        <option value="law">法律</option>
-        <option value="python">编程</option>
-        <option value="tax">税务</option>
-        <option value="vet_feline">兽医（猫）</option>
-      </select>
-      <button class="btn full" onclick="generateData()">生成并训练</button>
-    </div>
-  </div>
-
-  <!-- 训练状态 -->
-  <div class="panel" id="panel-status">
-    <div class="card">
-      <h3>训练状态</h3>
-      <div id="statusEmpty"><p style="color:var(--muted)">暂无活跃任务</p></div>
-      <div id="statusActive" style="display:none">
-        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
-        <div class="stats">
-          <div><div class="label">Loss</div><div class="val" id="lossVal">—</div></div>
-          <div><div class="label">已用</div><div class="val" id="timeVal">—</div></div>
-          <div><div class="label">状态</div><div class="val" id="statusVal">排队中</div></div>
+      <section id="panel-agg" class="ws-panel">
+        <h2 class="ws-panel-title">联邦聚合</h2>
+        <p class="ws-panel-desc">当同领域有 2 个以上完成的训练任务时，可以触发 FedAvg 逆损失加权聚合。</p>
+        <div class="ws-card">
+          <div class="ws-form-row">
+            <label class="ws-label">聚合领域</label>
+            <select id="aggDomain" class="ws-select">
+              <option value="law">法务</option>
+              <option value="vet_feline">兽医（猫内科）</option>
+              <option value="vet_exotic">兽医（异宠）</option>
+              <option value="med_chronic">医疗（慢病）</option>
+              <option value="fin_compliance">金融（合规）</option>
+              <option value="ind_equipment">工业（设备维护）</option>
+              <option value="edu_analysis">教育（学情分析）</option>
+            </select>
+          </div>
+          <div id="aggResult" class="ws-result"></div>
+          <button class="btn btn--primary" onclick="handleAggregate()">触发聚合</button>
+          <div class="ws-history">
+            <h4>聚合轮次</h4>
+            <table class="ws-table" id="aggHistoryTable">
+              <thead><tr><th>轮次 ID</th><th>领域</th><th>创建时间</th><th>操作</th></tr></thead>
+              <tbody id="aggHistoryBody"></tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+
+      <section id="panel-download" class="ws-panel">
+        <h2 class="ws-panel-title">模型下载</h2>
+        <p class="ws-panel-desc">下载聚合后的模型权重文件，用于本地部署推理。</p>
+        <div class="ws-card">
+          <div class="ws-form-row">
+            <label class="ws-label">轮次 ID</label>
+            <input type="text" id="downloadRoundId" class="ws-input" placeholder="例如 agg_law_r1">
+          </div>
+          <div id="downloadResult" class="ws-result"></div>
+          <button class="btn btn--primary" onclick="handleDownload()">下载权重</button>
+        </div>
+      </section>
+
+      <section id="panel-chat" class="ws-panel">
+        <h2 class="ws-panel-title">推理聊天</h2>
+        <p class="ws-panel-desc">测试模型效果。推理服务采用三级降级链：本地模型 → 智谱 API → 关键词匹配。</p>
+        <div class="ws-card ws-chat-card">
+          <div class="ws-form-row">
+            <label class="ws-label">适配器 ID（可选）</label>
+            <input type="text" id="chatAdapterId" class="ws-input" placeholder="留空使用基座模型">
+          </div>
+          <div class="ws-chat-box" id="chatBox">
+            <div class="ws-chat-msg ws-chat-msg--bot">你好！我是 Firefly LM，请问有什么可以帮你的？</div>
+          </div>
+          <div class="ws-chat-input-row">
+            <input type="text" id="chatInput" class="ws-input ws-chat-input" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')handleChatSend()">
+            <button class="btn btn--primary" onclick="handleChatSend()">发送</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-points" class="ws-panel">
+        <h2 class="ws-panel-title">积分管理</h2>
+        <p class="ws-panel-desc">完成任务获得积分，下载权重消耗积分。</p>
+        <div class="ws-card">
+          <div class="ws-points-display">
+            <div class="ws-points-num" id="pointsBalance">--</div>
+            <div class="ws-points-label">当前积分</div>
+          </div>
+          <div class="ws-history">
+            <h4>积分流水</h4>
+            <table class="ws-table" id="pointsHistoryTable">
+              <thead><tr><th>时间</th><th>变动</th><th>原因</th></tr></thead>
+              <tbody id="pointsHistoryBody"></tbody>
+            </table>
+          </div>
+          <button class="btn btn--secondary" onclick="loadBalance()">刷新</button>
+        </div>
+      </section>
+
+      <section id="panel-audit" class="ws-panel">
+        <h2 class="ws-panel-title">审计日志</h2>
+        <p class="ws-panel-desc">查看你的所有操作记录，包括数据上传、训练、聚合、下载等。</p>
+        <div class="ws-card">
+          <div class="ws-history">
+            <table class="ws-table" id="auditTable">
+              <thead><tr><th>时间</th><th>操作</th><th>详情</th></tr></thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+          <button class="btn btn--secondary" onclick="loadAuditLogs()">刷新</button>
+        </div>
+      </section>
+
+    </main>
   </div>
 
-  <!-- 下载权重 -->
-  <div class="panel" id="panel-download">
-    <div class="card">
-      <h3>下载权重</h3>
-      <p style="color:var(--muted);margin-bottom:14px;font-size:0.9em">已完成的任务可下载适配器权重。</p>
-      <div id="downloadList"><p style="color:var(--muted)">暂无完成的任务</p></div>
-    </div>
-  </div>
+  <script src="api.js"></script>
+  <script>
+    /* ---------- 工作台逻辑 ---------- */
+    function logout() {
+      if (typeof clearToken === 'function') {
+        clearToken();
+      } else {
+        localStorage.removeItem('firefly_token');
+      }
+      location.href = '/';
+    }
 
-  <!-- 在线测试 -->
-  <div class="panel" id="panel-chat">
-    <div class="card">
-      <h3>对话测试</h3>
-      <label style="font-size:0.85em;color:var(--muted)">适配器</label>
-      <select id="chatAdapter">
-        <option value="">基座模型</option>
-      </select>
-      <div class="chat-box" id="chatBox" style="margin-top:14px">
-        <div class="msg ai"><div class="bubble">你好，加载适配器后可以进行领域对话测试。</div></div>
-      </div>
-      <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}">
-        <button class="btn" onclick="sendChat()">发送</button>
-      </div>
-    </div>
-  </div>
+    function switchPanel(panelId) {
+      document.querySelectorAll('.ws-panel').forEach(function (p) {
+        p.classList.remove('active');
+      });
+      document.querySelectorAll('.ws-nav-item').forEach(function (n) {
+        n.classList.remove('active');
+      });
+      var panel = document.getElementById(panelId);
+      if (panel) panel.classList.add('active');
+      event.target.classList.add('active');
+    }
 
-  <!-- 历史记录 -->
-  <div class="panel" id="panel-history">
-    <div class="card">
-      <h3>历史记录</h3>
-      <table>
-        <thead><tr><th>任务 ID</th><th>领域</th><th>状态</th><th>Loss</th><th>操作</th></tr></thead>
-        <tbody id="historyBody">
-          <tr><td colspan="5" style="text-align:center;color:var(--muted)">暂无记录</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    /* 上传区拖拽 */
+    document.addEventListener('DOMContentLoaded', function () {
+      var token = localStorage.getItem('firefly_token');
+      if (!token) {
+        location.href = '/';
+        return;
+      }
+      loadBalance();
 
-  <!-- 积分 -->
-  <div class="panel" id="panel-points">
-    <div class="card points">
-      <div class="num" id="pointsNum">0</div>
-      <div class="lbl">当前积分</div>
-    </div>
-    <div class="card">
-      <h3>积分规则</h3>
-      <table>
-        <thead><tr><th>行为</th><th>积分</th></tr></thead>
-        <tbody>
-          <tr><td>完成训练任务</td><td>+10</td></tr>
-          <tr><td>高质量（loss &lt; 0.5）</td><td>+5</td></tr>
-          <tr><td>参与聚合</td><td>+3</td></tr>
-          <tr><td>下载聚合权重</td><td>-20</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+      var zone = document.getElementById('uploadZone');
+      var fileInput = document.getElementById('dataFile');
+      if (zone && fileInput) {
+        zone.addEventListener('click', function () { fileInput.click(); });
+        zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.style.borderColor = 'var(--brand-orange)'; });
+        zone.addEventListener('dragleave', function () { zone.style.borderColor = ''; });
+        zone.addEventListener('drop', function (e) {
+          e.preventDefault();
+          zone.style.borderColor = '';
+          if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            zone.querySelector('p').textContent = e.dataTransfer.files[0].name;
+          }
+        });
+        fileInput.addEventListener('change', function () {
+          if (fileInput.files.length) {
+            zone.querySelector('p').textContent = fileInput.files[0].name;
+          }
+        });
+      }
+    });
 
-</main>
-</div>
+    async function handleUpload() {
+      var fileInput = document.getElementById('dataFile');
+      var resultDiv = document.getElementById('uploadResult');
+      if (!fileInput.files.length) {
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--warn">请先选择文件</span>';
+        return;
+      }
+      resultDiv.innerHTML = '<span class="ws-loading">上传中...</span>';
+      try {
+        var res = await uploadFile(fileInput.files[0]);
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--success">上传成功：' + (res.lines || res.filename || '已保存') + '</span>';
+      } catch (e) {
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--error">上传失败：' + e.message + '</span>';
+      }
+    }
 
-<script>
-const API = "https://api.firefly-lm.com";
-let token = localStorage.getItem("ff_token") || "";
-let currentTaskId = null;
-let pollTimer = null;
+    async function handleGenerate() {
+      var domain = document.getElementById('seedDomain').value;
+      var resultDiv = document.getElementById('seedResult');
+      resultDiv.innerHTML = '<span class="ws-loading">生成中，约需 1-2 分钟...</span>';
+      try {
+        var res = await generateSeedData(domain);
+        var preview = res.preview || [];
+        var html = '<span class="ws-alert ws-alert--success">生成 ' + (res.count || 0) + ' 条数据</span>';
+        if (preview.length) {
+          html += '<div class="ws-preview">';
+          preview.forEach(function (item) {
+            html += '<div class="ws-preview-item"><strong>Q:</strong> ' + (item.question || '').substring(0, 60) + '</div>';
+          });
+          html += '</div>';
+        }
+        resultDiv.innerHTML = html;
+      } catch (e) {
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--error">生成失败：' + e.message + '</span>';
+      }
+    }
 
-function switchPanel(name){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".sidebar-item").forEach(i=>i.classList.remove("active"));
-  document.getElementById("panel-"+name).classList.add("active");
-  document.querySelector(`.sidebar-item[data-panel="${name}"]`).classList.add("active");
-}
+    async function handleStartTraining() {
+      var domain = document.getElementById('trainDomain').value;
+      var mode = document.querySelector('input[name="trainMode"]:checked').value;
+      var resultDiv = document.getElementById('trainProgress');
+      resultDiv.innerHTML = '<span class="ws-loading">提交训练任务...</span>';
+      try {
+        var res = await startTraining(domain, mode);
+        var taskId = res.task_id || res.id || 'unknown';
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--success">任务已创建：' + taskId + '</span>';
+        pollTrainingStatus(taskId);
+        addTrainHistory(taskId, domain, 'pending', 0);
+      } catch (e) {
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--error">启动失败：' + e.message + '</span>';
+      }
+    }
 
-function selectMode(el){
-  document.querySelectorAll(".mode").forEach(c=>c.classList.remove("selected"));
-  el.classList.add("selected");
-}
+    var pollTimer = null;
+    function pollTrainingStatus(taskId) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async function () {
+        try {
+          var res = await getTrainingStatus(taskId);
+          var status = res.status || 'unknown';
+          var progress = res.progress || 0;
+          var loss = res.loss ? ' loss=' + res.loss.toFixed(4) : '';
+          var resultDiv = document.getElementById('trainProgress');
+          if (status === 'completed') {
+            clearInterval(pollTimer);
+            resultDiv.innerHTML = '<span class="ws-alert ws-alert--success">训练完成！' + loss + '</span>';
+            updateTrainHistory(taskId, 'completed', 100);
+            loadBalance();
+          } else if (status === 'failed') {
+            clearInterval(pollTimer);
+            resultDiv.innerHTML = '<span class="ws-alert ws-alert--error">训练失败</span>';
+            updateTrainHistory(taskId, 'failed', 0);
+          } else {
+            resultDiv.innerHTML = '<span class="ws-loading">训练中... ' + progress + '%' + loss + '</span>';
+            updateTrainHistory(taskId, status, progress);
+          }
+        } catch (e) {
+          clearInterval(pollTimer);
+        }
+      }, 5000);
+    }
 
-function handleFile(file){
-  if(!file) return;
-  if(!file.name.endsWith(".jsonl")) return alert("请上传 .jsonl 文件");
-  document.getElementById("fileInput").files = (()=>{const dt=new DataTransfer();dt.items.add(file);return dt.files})();
-  alert("已选择: "+file.name);
-}
+    function addTrainHistory(taskId, domain, status, progress) {
+      var tbody = document.getElementById('trainHistoryBody');
+      var row = document.createElement('tr');
+      row.id = 'train-row-' + taskId;
+      row.innerHTML = '<td>' + taskId + '</td><td>' + domain + '</td><td class="ws-status">' + status + '</td><td>' + progress + '%</td>';
+      tbody.prepend(row);
+    }
+    function updateTrainHistory(taskId, status, progress) {
+      var row = document.getElementById('train-row-' + taskId);
+      if (row) {
+        row.querySelector('.ws-status').textContent = status;
+        row.children[3].textContent = progress + '%';
+      }
+    }
 
-async function startTraining(){
-  const file = document.getElementById("fileInput").files[0];
-  if(!file) return alert("请先选择文件");
-  const mode = document.querySelector(".mode.selected").dataset.mode;
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("domain", "law");
-  fd.append("node_id", localStorage.getItem("ff_user")||"web_user");
-  fd.append("mode", mode);
-  try{
-    const r = await fetch(API+"/api/v1/train/submit",{method:"POST",headers:{...(token?{Authorization:`Bearer ${token}`}:{})},body:fd});
-    const d = await r.json();
-    if(d.task_id){currentTaskId=d.task_id;alert("已提交: "+d.task_id);switchPanel("status");startPolling(d.task_id)}
-  }catch(e){alert("提交失败: "+e.message)}
-}
+    async function handleAggregate() {
+      var domain = document.getElementById('aggDomain').value;
+      var resultDiv = document.getElementById('aggResult');
+      resultDiv.innerHTML = '<span class="ws-loading">聚合中...</span>';
+      try {
+        var res = await triggerAggregation(domain);
+        if (res.status === 'ok' || res.round_id) {
+          resultDiv.innerHTML = '<span class="ws-alert ws-alert--success">聚合成功！轮次：' + (res.round_id || '完成') + '</span>';
+          addAggHistory(res.round_id || 'new', domain);
+        } else {
+          resultDiv.innerHTML = '<span class="ws-alert ws-alert--warn">' + (res.message || '无法聚合') + '</span>';
+        }
+      } catch (e) {
+        resultDiv.innerHTML = '<span class="ws-alert ws-alert--error">聚合失败：' + e.message + '</span>';
+      }
+    }
 
-function startPolling(id){
-  if(pollTimer) clearInterval(pollTimer);
-  document.getElementById("statusEmpty").style.display="none";
-  document.getElementById("statusActive").style.display="block";
-  pollTimer = setInterval(async()=>{
-    try{
-      const r = await fetch(API+"/api/v1/train/status/"+id);
-      const d = await r.json();
-      document.getElementById("progressBar").style.width = (d.progress||0)+"%";
-      document.getElementById("lossVal").textContent = d.final_loss||"—";
-      document.getElementById("statusVal").textContent = d.status||"排队中";
-      if(["completed","failed","rejected"].includes(d.status)){clearInterval(pollTimer);if(d.status==="completed"){alert("训练完成");refreshHistory()}}
-    }catch(e){}
-  },5000);
-}
+    function addAggHistory(roundId, domain) {
+      var tbody = document.getElementById('aggHistoryBody');
+      var row = document.createElement('tr');
+      var now = new Date().toLocaleString('zh-CN');
+      row.innerHTML = '<td>' + roundId + '</td><td>' + domain + '</td><td>' + now + '</td><td><button class="btn btn--text" onclick="useAggId(\'' + roundId + '\')">下载</button></td>';
+      tbody.prepend(row);
+    }
+    function useAggId(roundId) {
+      document.getElementById('downloadRoundId').value = roundId;
+      switchPanel('panel-download');
+    }
 
-async function generateData(){
-  const domain = document.getElementById("genDomain").value;
-  try{
-    const r = await fetch(API+"/api/v1/train/generate?domain="+domain,{method:"POST",headers:{...(token?{Authorization:`Bearer ${token}`}:{})}});
-    const d = await r.json();
-    if(d.task_id){currentTaskId=d.task_id;alert("已提交: "+d.task_id);switchPanel("status");startPolling(d.task_id)}
-  }catch(e){alert("失败: "+e.message)}
-}
+    async function handleDownload() {
+      var roundId = document.getElementById('downloadRoundId').value.trim();
+      if (!roundId) {
+        document.getElementById('downloadResult').innerHTML = '<span class="ws-alert ws-alert--warn">请输入轮次 ID</span>';
+        return;
+      }
+      document.getElementById('downloadResult').innerHTML = '<span class="ws-loading">准备下载...</span>';
+      try {
+        downloadWeight(roundId);
+        document.getElementById('downloadResult').innerHTML = '<span class="ws-alert ws-alert--success">下载已开始</span>';
+      } catch (e) {
+        document.getElementById('downloadResult').innerHTML = '<span class="ws-alert ws-alert--error">下载失败：' + e.message + '</span>';
+      }
+    }
 
-async function sendChat(){
-  const input = document.getElementById("chatInput");
-  const msg = input.value.trim();
-  if(!msg) return;
-  const box = document.getElementById("chatBox");
-  box.innerHTML += `<div class="msg user"><div class="bubble">${esc(msg)}</div></div>`;
-  input.value = "";
-  const adapter = document.getElementById("chatAdapter").value;
-  try{
-    const r = await fetch(API+"/api/v1/inference/v1/chat",{method:"POST",headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify({messages:[{role:"user",content:msg}],adapter_id:adapter||undefined})});
-    const d = await r.json();
-    const reply = d.choices?.[0]?.message?.content||"（无回复）";
-    box.innerHTML += `<div class="msg ai"><div class="bubble">${esc(reply)}</div></div>`;
-    box.scrollTop = box.scrollHeight;
-  }catch(e){box.innerHTML += `<div class="msg ai"><div class="bubble" style="color:var(--red)">请求失败: ${e.message}</div></div>`}
-}
+    async function handleChatSend() {
+      var input = document.getElementById('chatInput');
+      var msg = input.value.trim();
+      if (!msg) return;
+      var chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--user">' + escapeHtml(msg) + '</div>';
+      input.value = '';
+      chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--bot ws-chat-msg--loading">思考中...</div>';
+      chatBox.scrollTop = chatBox.scrollHeight;
+      try {
+        var adapterId = document.getElementById('chatAdapterId').value.trim();
+        var res = await chatSend([{ role: 'user', content: msg }], adapterId || null);
+        var reply = '';
+        if (res.choices && res.choices[0]) {
+          reply = res.choices[0].message.content;
+        } else if (res.reply) {
+          reply = res.reply;
+        } else {
+          reply = JSON.stringify(res);
+        }
+        var loading = chatBox.querySelector('.ws-chat-msg--loading');
+        if (loading) loading.remove();
+        chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--bot">' + escapeHtml(reply) + '</div>';
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (e) {
+        var loading = chatBox.querySelector('.ws-chat-msg--loading');
+        if (loading) loading.remove();
+        chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--bot ws-alert--error">请求失败：' + escapeHtml(e.message) + '</div>';
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
 
-async function refreshHistory(){
-  try{
-    const r = await fetch(API+"/api/v1/train/history",{headers:{...(token?{Authorization:`Bearer ${token}`}:{})}});
-    const d = await r.json();
-    const tb = document.getElementById("historyBody");
-    if(!d.tasks||!d.tasks.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted)">暂无记录</td></tr>';return}
-    tb.innerHTML = d.tasks.map(t=>{
-      const cls = t.status==="completed"?"badge-ok":t.status==="running"?"badge-run":t.status==="failed"?"badge-fail":"";
-      return `<tr><td>${esc(t.task_id)}</td><td>${esc(t.domain)}</td><td><span class="badge ${cls}">${t.status}</span></td><td>${t.final_loss||"—"}</td><td>${t.status==="completed"?`<button class="btn small ghost" onclick="downloadWeight('${t.task_id}')">下载</button>`:""}</td></tr>`;
-    }).join("");
-  }catch(e){}
-}
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
 
-function downloadWeight(id){window.open(API+"/api/v1/train/result/"+id+"?token="+token,"_blank")}
-function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+    async function loadBalance() {
+      var el = document.getElementById('pointsBalance');
+      if (!el) return;
+      try {
+        var res = await getBalance();
+        el.textContent = res.balance !== undefined ? res.balance : (res.total_points || 0);
+        var tbody = document.getElementById('pointsHistoryBody');
+        if (tbody && res.transactions) {
+          tbody.innerHTML = '';
+          res.transactions.slice(0, 20).forEach(function (t) {
+            var row = document.createElement('tr');
+            row.innerHTML = '<td>' + (t.created_at || '') + '</td><td>' + (t.points > 0 ? '+' : '') + t.points + '</td><td>' + (t.reason || '') + '</td>';
+            tbody.appendChild(row);
+          });
+        }
+      } catch (e) {
+        el.textContent = '加载失败';
+      }
+    }
 
-refreshHistory();
-setInterval(refreshHistory,30000);
-</script>
+    async function loadAuditLogs() {
+      var tbody = document.getElementById('auditBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="3" class="ws-loading">加载中...</td></tr>';
+      try {
+        var res = await getAuditLogs();
+        var logs = res.logs || [];
+        tbody.innerHTML = '';
+        logs.forEach(function (log) {
+          var row = document.createElement('tr');
+          row.innerHTML = '<td>' + (log.timestamp || log.created_at || '') + '</td><td>' + (log.action || '') + '</td><td>' + (log.detail || '') + '</td>';
+          tbody.appendChild(row);
+        });
+        if (!logs.length) {
+          tbody.innerHTML = '<tr><td colspan="3" class="ws-empty">暂无记录</td></tr>';
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="3" class="ws-alert--error">加载失败</td></tr>';
+      }
+    }
+  </script>
 </body>
 </html>

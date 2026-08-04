@@ -1,383 +1,216 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Firefly LM</title>
-<style>
-  :root{
-    --bg:#fff;
-    --text:#111;
-    --muted:#666;
-    --border:#e5e5e5;
-    --accent:#111;
-    --radius:6px;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    font-size:15px;
-    line-height:1.7;
-    -webkit-font-smoothing:antialiased;
-  }
-  a{color:inherit;text-decoration:none}
-  button{font-family:inherit;cursor:pointer;border:0;font-size:inherit}
-
-  /* 容器 */
-  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
-
-  /* 顶栏 */
-  .nav{
-    border-bottom:1px solid var(--border);
-    background:#fff;
-    position:sticky;top:0;z-index:50;
-  }
-  .nav-inner{
-    max-width:760px;margin:0 auto;
-    padding:14px 24px;
-    display:flex;align-items:center;justify-content:space-between;
-  }
-  .brand{font-weight:600;font-size:1em;letter-spacing:-0.3px}
-  .nav-links{display:flex;gap:24px;font-size:0.9em;color:var(--muted)}
-  .nav-links a:hover{color:var(--text)}
-
-  /* 主内容 */
-  main{padding:80px 0 60px}
-
-  /* Hero */
-  .hero{margin-bottom:80px}
-  .hero h1{
-    font-size:2.2em;
-    font-weight:700;
-    line-height:1.25;
-    letter-spacing:-0.5px;
-    margin-bottom:16px;
-  }
-  .hero p{
-    font-size:1.1em;
-    color:var(--muted);
-    max-width:520px;
-    margin-bottom:32px;
-  }
-  .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
-
-  /* 按钮 */
-  .btn{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:10px 20px;
-    border-radius:var(--radius);
-    font-size:0.95em;
-    transition:opacity .15s;
-  }
-  .btn-primary{background:var(--accent);color:#fff}
-  .btn-primary:hover{opacity:0.85}
-  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
-  .btn-ghost:hover{background:#f5f5f5}
-
-  /* 区块通用 */
-  section{margin-bottom:80px}
-  h2{
-    font-size:1.4em;
-    font-weight:600;
-    letter-spacing:-0.3px;
-    margin-bottom:8px;
-  }
-  .section-desc{
-    color:var(--muted);
-    margin-bottom:32px;
-    font-size:0.95em;
-  }
-
-  /* 三模式 */
-  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  .mode{
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:20px;
-  }
-  .mode h3{font-size:1em;font-weight:600;margin-bottom:6px}
-  .mode p{font-size:0.88em;color:var(--muted);margin-bottom:12px}
-  .mode .tag{
-    display:inline-block;
-    font-size:0.78em;
-    color:var(--muted);
-    border:1px solid var(--border);
-    border-radius:999px;
-    padding:2px 10px;
-  }
-
-  /* 工作流 */
-  .flow{display:flex;flex-direction:column;gap:0}
-  .flow-step{
-    display:flex;gap:20px;
-    padding:16px 0;
-    border-bottom:1px solid var(--border);
-  }
-  .flow-step:last-child{border-bottom:0}
-  .flow-num{
-    flex-shrink:0;
-    width:28px;height:28px;
-    border:1px solid var(--border);
-    border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    font-size:0.85em;
-    color:var(--muted);
-  }
-  .flow-text strong{display:block;font-weight:500;margin-bottom:2px}
-  .flow-text span{font-size:0.88em;color:var(--muted)}
-
-  /* 案例 */
-  .case{
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:24px;
-  }
-  .case p{margin-bottom:8px}
-  .case .case-meta{font-size:0.85em;color:var(--muted)}
-
-  /* 隐私 */
-  .privacy{font-size:0.92em;color:var(--muted)}
-  .privacy ul{list-style:none;padding:0}
-  .privacy li{padding:6px 0;border-bottom:1px solid var(--border)}
-  .privacy li:last-child{border-bottom:0}
-
-  /* 页脚 */
-  footer{
-    border-top:1px solid var(--border);
-    padding:32px 0;
-    font-size:0.85em;
-    color:var(--muted);
-  }
-  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
-  footer a{color:var(--muted)}
-  footer a:hover{color:var(--text)}
-
-  /* 登录弹窗 */
-  .modal-overlay{
-    display:none;
-    position:fixed;top:0;left:0;right:0;bottom:0;
-    background:rgba(0,0,0,0.3);
-    z-index:100;
-    align-items:center;justify-content:center;
-  }
-  .modal-overlay.show{display:flex}
-  .modal{
-    background:#fff;
-    border-radius:var(--radius);
-    padding:32px;
-    width:360px;
-    max-width:90vw;
-    border:1px solid var(--border);
-  }
-  .modal h3{font-size:1.1em;font-weight:600;margin-bottom:20px}
-  .modal label{display:block;font-size:0.85em;color:var(--muted);margin-bottom:6px}
-  .modal input{
-    width:100%;
-    padding:10px 12px;
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    font-size:0.95em;
-    margin-bottom:16px;
-    font-family:inherit;
-    color:var(--text);
-    background:#fff;
-  }
-  .modal input:focus{outline:none;border-color:#999}
-  .modal .btn{width:100%;justify-content:center;margin-bottom:12px}
-  .modal .switch{font-size:0.85em;color:var(--muted);text-align:center}
-  .modal .switch a{color:var(--text);text-decoration:underline}
-
-  /* 响应式 */
-  @media(max-width:640px){
-    .hero h1{font-size:1.7em}
-    .modes{grid-template-columns:1fr}
-    .nav-links a:not(.always-show){display:none}
-    main{padding:48px 0 40px}
-    section{margin-bottom:56px}
-  }
-  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Firefly LM 火种 - 让多个机构在不共享原始数据的前提下联合训练自己的 AI 模型。数据不出域，联邦聚合，共建更懂你的语言模型。">
+  <meta name="keywords" content="联邦学习,LoRA微调,隐私保护,AI训练,Firefly LM,火种">
+  <title>🔥 火种 Firefly LM — 让多个机构联合训练自己的 AI</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- 顶栏 -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="#" class="brand">Firefly LM</a>
-    <div class="nav-links">
-      <a href="#modes">训练模式</a>
-      <a href="#flow">工作流</a>
-      <a href="#privacy">隐私</a>
-      <a href="#" onclick="openModal('login')" class="always-show">登录</a>
+  <!-- ========== 导航栏 ========== -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-logo">🔥 Firefly LM</a>
+      <div class="nav-menu">
+        <a href="#workflow">工作流</a>
+        <a href="#scenes">适用场景</a>
+        <a href="#" class="nav-login" onclick="openLogin()">登录</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== Hero 首屏 ========== -->
+  <section class="section section--light">
+    <div class="container grid grid--hero">
+      <div class="hero__left">
+        <h1 class="hero__title">让多个机构<br>联合训练自己的 AI</h1>
+        <p class="hero__subtitle">数据不出域，各自训练，联邦聚合，共建更懂你的语言模型</p>
+        <div class="hero__actions">
+          <a href="#" class="btn btn--primary" onclick="openLogin()">开始使用</a>
+          <a href="#workflow" class="btn btn--secondary">查看工作流</a>
+        </div>
+        <div class="hero__meta">
+          <span class="hero__meta-item">✓ 数据不出域</span>
+          <span class="hero__meta-item">✓ LoRA 微调</span>
+          <span class="hero__meta-item">✓ 联邦聚合</span>
+        </div>
+      </div>
+      <div class="hero__right">
+        <div class="card mode-card">
+          <div class="mode-card__header">
+            <h3>本地 GPU 训练</h3>
+            <span class="tag tag--free">免费</span>
+          </div>
+          <p>用自己的显卡微调模型，数据全程留在本地</p>
+        </div>
+        <div class="card mode-card">
+          <div class="mode-card__header">
+            <h3>CPU 演示模式</h3>
+            <span class="tag tag--free">免费</span>
+          </div>
+          <p>没有显卡也能体验完整流程，快速验证可行性</p>
+        </div>
+        <div class="card mode-card">
+          <div class="mode-card__header">
+            <h3>付费代训练</h3>
+            <span class="tag tag--price">¥9.9/次</span>
+          </div>
+          <p>交给我们跑训练，你只管上传数据和下载结果</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 工作流 ========== -->
+  <section id="workflow" class="section section--gray">
+    <div class="container">
+      <h2 class="section__title">工作流</h2>
+      <p class="section__desc">五步完成从数据到模型的全流程</p>
+      <div class="grid grid--workflow">
+        <div class="step">
+          <span class="step__number">1</span>
+          <h3>准备数据</h3>
+          <p>脱敏处理后导出 JSONL 格式问答对</p>
+        </div>
+        <div class="step">
+          <span class="step__number">2</span>
+          <h3>本地训练</h3>
+          <p>一键启动 LoRA 微调，数据不出机器</p>
+        </div>
+        <div class="step">
+          <span class="step__number">3</span>
+          <h3>上传权重</h3>
+          <p>只上传模型差量，不上传原始数据</p>
+        </div>
+        <div class="step">
+          <span class="step__number">4</span>
+          <h3>联邦聚合</h3>
+          <p>多节点权重合并，FedAvg 逆损失加权</p>
+        </div>
+        <div class="step">
+          <span class="step__number">5</span>
+          <h3>下载使用</h3>
+          <p>获得聚合后的更强模型，本地部署推理</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 适用场景 ========== -->
+  <section id="scenes" class="section section--light">
+    <div class="container">
+      <h2 class="section__title">适用场景</h2>
+      <p class="section__desc">无论你在哪个行业，只要有多方协作需求，Firefly 都能帮你安全地联合训练模型</p>
+      <div class="grid grid--3">
+        <div class="card scenario-card">
+          <div class="scenario-icon">⚖️</div>
+          <h3>法务</h3>
+          <p>多家律所联合训练合同审查模型，案件数据不出所</p>
+        </div>
+        <div class="card scenario-card">
+          <div class="scenario-icon">🐾</div>
+          <h3>兽医</h3>
+          <p>宠物诊所共享异宠病例知识，各自病历不出院</p>
+        </div>
+        <div class="card scenario-card">
+          <div class="scenario-icon">🏥</div>
+          <h3>医疗</h3>
+          <p>医联体内多家医院联合训练慢病管理模型</p>
+        </div>
+        <div class="card scenario-card">
+          <div class="scenario-icon">🏦</div>
+          <h3>金融</h3>
+          <p>中小银行联合训练合规模型，客户数据不出行</p>
+        </div>
+        <div class="card scenario-card">
+          <div class="scenario-icon">🏭</div>
+          <h3>工业</h3>
+          <p>集团多工厂联合训练设备预测性维护模型</p>
+        </div>
+        <div class="card scenario-card">
+          <div class="scenario-icon">📚</div>
+          <h3>教育</h3>
+          <p>多所学校联合训练学情分析模型，学生数据不出校</p>
+        </div>
+      </div>
+      <p class="section__footnote">更多场景持续开放中……你的行业也可以</p>
+    </div>
+  </section>
+
+  <!-- ========== CTA 区块 ========== -->
+  <section class="section section--gray">
+    <div class="container cta-center">
+      <h2 class="section__title">准备好开始了吗？</h2>
+      <p class="section__desc">免费注册，5 分钟上传数据，开始训练你的第一个模型</p>
+      <div class="hero__actions" style="justify-content:center;">
+        <a href="#" class="btn btn--primary" onclick="openLogin()">免费开始</a>
+        <a href="#scenes" class="btn btn--secondary">了解更多</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 页脚 ========== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p class="footer-text">© 2026 Firefly LM 火种 · <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener" class="footer-icp">ICP 备案中</a></p>
+      <div class="footer-links">
+        <a href="javascript:openPrivacy()" class="footer-link">隐私说明</a>
+        <a href="#" class="footer-link">服务条款</a>
+        <a href="https://github.com/firefly-lm-org" target="_blank" rel="noopener" class="footer-link">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== 登录弹窗 ========== -->
+  <div id="loginModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal()">×</span>
+      <h3 class="modal-title">登录 Firefly LM</h3>
+      <p class="modal-sub">使用邮箱登录或注册新账号</p>
+      <div class="modal-form" id="loginForm">
+        <input type="email" placeholder="邮箱地址" class="modal-input" id="loginEmail">
+        <input type="password" placeholder="密码" class="modal-input" id="loginPwd">
+        <button class="btn btn--primary btn--full" onclick="handleLogin()">登录</button>
+        <p class="modal-switch">没有账号？<a href="javascript:switchToRegister()">注册</a></p>
+      </div>
+      <div class="modal-form" id="registerForm" style="display:none;">
+        <input type="email" placeholder="邮箱地址" class="modal-input" id="regEmail">
+        <input type="password" placeholder="密码（至少 8 位）" class="modal-input" id="regPwd">
+        <input type="password" placeholder="确认密码" class="modal-input" id="regPwd2">
+        <button class="btn btn--primary btn--full" onclick="handleRegister()">注册</button>
+        <p class="modal-switch">已有账号？<a href="javascript:switchToLogin()">登录</a></p>
+      </div>
     </div>
   </div>
-</nav>
 
-<main class="wrap">
-
-  <!-- Hero -->
-  <section class="hero">
-    <h1>在你的数据上训练<br>属于自己的语言模型</h1>
-    <p>联邦 LoRA 微调工具。数据留在本地，只上传模型差量，多节点聚合后获得更好的效果。</p>
-    <div class="hero-actions">
-      <button class="btn btn-primary" onclick="openModal('login')">开始使用</button>
-      <a class="btn btn-ghost" href="#flow">查看工作流</a>
-    </div>
-  </section>
-
-  <!-- 三模式 -->
-  <section id="modes">
-    <h2>训练模式</h2>
-    <p class="section-desc">三种方式，按需选择。</p>
-    <div class="modes">
-      <div class="mode">
-        <h3>本地 GPU</h3>
-        <p>数据不出本机，需要 GPU ≥ 8GB。</p>
-        <span class="tag">免费</span>
-      </div>
-      <div class="mode">
-        <h3>CPU 演示</h3>
-        <p>无需显卡，效果为演示级别。</p>
-        <span class="tag">免费</span>
-      </div>
-      <div class="mode">
-        <h3>付费代训练</h3>
-        <p>服务器 GPU 代跑，优先排队。</p>
-        <span class="tag">¥9.9 / 次</span>
+  <!-- ========== 隐私弹窗 ========== -->
+  <div id="privacyModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-box modal-box--large">
+      <span class="modal-close" onclick="closeModal()">×</span>
+      <h3 class="modal-title">隐私说明</h3>
+      <div class="privacy-content">
+        <h4>本地 GPU 训练</h4>
+        <p>您的原始训练数据始终保留在本地，Firefly 只接收模型权重差量（LoRA adapter），无法还原原始数据。数据不出本机。</p>
+        <h4>CPU 演示模式</h4>
+        <p>使用此模式时，您的训练数据需上传至服务器进行 CPU 训练。训练完成后，您可选择删除服务器上的数据副本。我们不会将您的数据用于训练以外的任何目的。</p>
+        <h4>付费代训练</h4>
+        <p>使用此模式时，您的数据将上传至服务器并由 GPU 完成训练。训练完成后数据将被清除。所有数据传输均通过加密通道完成。</p>
+        <h4>联邦聚合</h4>
+        <p>多节点上传的权重在服务器端做 FedAvg 聚合，聚合后的模型分发给所有参与者。无论哪种训练模式，上传的均为模型权重差量，非原始数据。</p>
+        <h4>可随时退出</h4>
+        <p>您可以随时停止参与联邦训练，删除已上传的权重，并清除账户关联的所有数据。</p>
+        <h4>审计日志</h4>
+        <p>所有数据上传、聚合、下载操作均有完整审计记录，您可随时在工作台查看。</p>
       </div>
     </div>
-  </section>
-
-  <!-- 工作流 -->
-  <section id="flow">
-    <h2>工作流</h2>
-    <p class="section-desc">从数据到可用模型的完整链路。</p>
-    <div class="flow">
-      <div class="flow-step">
-        <div class="flow-num">1</div>
-        <div class="flow-text">
-          <strong>准备数据</strong>
-          <span>上传 JSONL 格式问答对，或自动生成。</span>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">2</div>
-        <div class="flow-text">
-          <strong>本地训练</strong>
-          <span>在你的机器上微调 LoRA，原始数据不离开设备。</span>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">3</div>
-        <div class="flow-text">
-          <strong>上传权重</strong>
-          <span>只上传 LoRA 差量文件，不上传原始数据。</span>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">4</div>
-        <div class="flow-text">
-          <strong>联邦聚合</strong>
-          <span>同领域 ≥3 节点完成后自动聚合，生成更好的模型。</span>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">5</div>
-        <div class="flow-text">
-          <strong>下载使用</strong>
-          <span>聚合后的权重可下载，用于本地推理验证。</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 案例 -->
-  <section id="case">
-    <h2>案例</h2>
-    <p class="section-desc">真实使用场景。</p>
-    <div class="case">
-      <p><strong>某律所联盟</strong></p>
-      <p style="color:var(--muted)">3 家律所各自用脱敏问答数据本地训练，联邦聚合后法律问答准确率提升 8%。数据全程未离开任何一家律所。</p>
-      <p class="case-meta">领域：法律 · 节点数：3 · 聚合轮次：2</p>
-    </div>
-  </section>
-
-  <!-- 隐私 -->
-  <section id="privacy">
-    <h2>隐私</h2>
-    <p class="section-desc">数据如何流动，一目了然。</p>
-    <div class="privacy">
-      <ul>
-        <li><strong>本地 GPU 训练</strong> — 数据不出本机 ✅</li>
-        <li><strong>CPU / 付费训练</strong> — 数据上传至服务器处理 ⚠️</li>
-        <li><strong>联邦聚合</strong> — 仅交换 LoRA 权重差量，不交换原始数据 ✅</li>
-        <li><strong>聊天推理</strong> — 输入发送至服务器生成回复，不用于训练 ⚠️</li>
-      </ul>
-    </div>
-  </section>
-
-</main>
-
-<!-- 页脚 -->
-<footer>
-  <div class="wrap">
-    <span>© 2026 Firefly LM</span>
-    <span>
-      <a href="https://github.com/firefly-lm-org" style="margin-right:16px">GitHub</a>
-      <a href="#" onclick="openModal('login')">登录</a>
-    </span>
   </div>
-</footer>
 
-<!-- 登录弹窗 -->
-<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <h3 id="modalTitle">登录</h3>
-    <label>用户名</label>
-    <input id="username" placeholder="请输入用户名">
-    <label>密码</label>
-    <input id="password" type="password" placeholder="请输入密码">
-    <button class="btn btn-primary" id="modalBtn" onclick="handleAuth()">登录</button>
-    <p class="switch" id="modalSwitch">
-      没有账号？<a href="#" onclick="switchAuth()">注册</a>
-    </p>
-  </div>
-</div>
-
-<script>
-  let mode = 'login';
-
-  function openModal(m){mode=m;renderModal();document.getElementById('modal').classList.add('show')}
-  function closeModal(){document.getElementById('modal').classList.remove('show')}
-  function switchAuth(){mode=mode==='login'?'register':'login';renderModal()}
-
-  function renderModal(){
-    document.getElementById('modalTitle').textContent = mode==='login'?'登录':'注册';
-    document.getElementById('modalBtn').textContent = mode==='login'?'登录':'注册';
-    document.getElementById('modalSwitch').innerHTML = mode==='login'
-      ? '没有账号？<a href="#" onclick="switchAuth()">注册</a>'
-      : '已有账号？<a href="#" onclick="switchAuth()">登录</a>';
-  }
-
-  async function handleAuth(){
-    const u = document.getElementById('username').value.trim();
-    const p = document.getElementById('password').value;
-    if(!u||!p) return alert('请输入用户名和密码');
-    const url = mode==='login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
-    try{
-      const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
-      const d = await r.json();
-      if(d.access_token){localStorage.setItem('ff_token',d.access_token);closeModal();alert('登录成功')}
-      else{alert(d.detail||'操作失败')}
-    }catch(e){alert('网络错误: '+e.message)}
-  }
-
-  // ESC 关闭
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-</script>
-
+  <script src="api.js"></script>
 </body>
 </html>
