@@ -274,3 +274,41 @@ button { font-family: inherit; }
   .ws-main { padding: 16px; }
   .ws-card { padding: 20px; }
 }
+
+/* ---------- 新增：Loss 曲线 & 底部状态栏 ---------- */
+.ws-loss-chart {
+  width: 100%;
+  max-height: 200px;
+  height: 200px;
+  margin-top: 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  display: block;
+}
+.ws-chat-meta {
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+.ws-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: var(--bg-gray);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 20px;
+  font-size: 12px;
+  color: var(--text-aux);
+  z-index: 100;
+}
+.ws-footer .ws-footer-sep { color: #DDD; }
+/* 给底部状态栏留出空间，避免遮挡内容 */
+body { padding-bottom: 36px; }
+.ws-layout { margin-bottom: 0; }
