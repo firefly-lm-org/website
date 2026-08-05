@@ -1,6 +1,6 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://api.firefly-lm.com/api/$1" }
+    { "source": "/api/(.*)", "destination": "http://106.14.220.169:8000/api/$1" }
   ]
 }
