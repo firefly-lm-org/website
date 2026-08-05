@@ -37,6 +37,7 @@
         <a href="#panel-chat" class="ws-nav-item" onclick="switchPanel('panel-chat')">💬 推理聊天</a>
         <a href="#panel-points" class="ws-nav-item" onclick="switchPanel('panel-points')">⭐ 积分管理</a>
         <a href="#panel-audit" class="ws-nav-item" onclick="switchPanel('panel-audit')">📋 审计日志</a>
+        <a href="javascript:void(0)" class="ws-nav-item" onclick="openDomainModal()">🏷️ 自定义领域</a>
       </nav>
     </aside>
 
@@ -65,8 +66,27 @@
               <input type="file" id="dataFile" accept=".jsonl,.json,.txt" style="display:none;">
             </div>
           </div>
+          <div class="ws-form-row">
+            <label class="ws-label">数据领域</label>
+            <select id="uploadDomain" class="ws-select"></select>
+            <button class="btn btn--text" onclick="openDomainModal()">自定义领域</button>
+          </div>
           <div id="uploadResult" class="ws-result"></div>
           <button class="btn btn--primary" onclick="handleUpload()">上传数据</button>
+          <div class="ws-divider"></div>
+          <h4 class="ws-subtitle">🤖 用智谱生成补充数据</h4>
+          <p class="ws-panel-desc ws-panel-desc--sm">调用智谱 GLM 基于该领域生成同类问答对，自动存入数据池（需服务器配置 ZHIPU_API_KEY）。</p>
+          <div class="ws-form-row">
+            <label class="ws-label">生成条数</label>
+            <input type="number" id="augCount" class="ws-input" value="10" min="1" max="50" style="max-width:120px;">
+          </div>
+          <div class="ws-form-row">
+            <label class="ws-label">补充要求（可选）</label>
+            <input type="text" id="augPrompt" class="ws-input" placeholder="例如：更口语化、含法律条文引用">
+          </div>
+          <button class="btn btn--secondary" onclick="handleAugment()">生成补充数据</button>
+          <div id="augResult" class="ws-result"></div>
+          <div id="augPreview" class="ws-aug-preview"></div>
         </div>
       </section>
 
@@ -109,10 +129,24 @@
           </div>
           <div class="ws-form-row">
             <label class="ws-label">训练模式</label>
-            <div class="ws-radio-group">
+            <div class="ws-radio-group" onchange="togglePaidArea()">
               <label class="ws-radio"><input type="radio" name="trainMode" value="gpu" checked> 本地 GPU（免费）</label>
               <label class="ws-radio"><input type="radio" name="trainMode" value="cpu"> CPU 演示（免费）</label>
+              <label class="ws-radio"><input type="radio" name="trainMode" value="proxy"> 代训练 ¥9.9/次</label>
             </div>
+          </div>
+          <div id="paidTrainArea" class="ws-paid-area" style="display:none;">
+            <div class="ws-form-row">
+              <label class="ws-label">支付方式</label>
+              <select id="payChannel" class="ws-select">
+                <option value="wechat">微信支付</option>
+                <option value="alipay">支付宝</option>
+              </select>
+            </div>
+            <div class="ws-form-row ws-btn-row">
+              <button class="btn btn--primary" onclick="startPaidPayment()">去支付 ¥9.9</button>
+            </div>
+            <div id="paidResult" class="ws-result"></div>
           </div>
           <div class="ws-form-row ws-btn-row">
             <button class="btn btn--primary" onclick="handleStartTraining()">启动训练</button>
@@ -224,6 +258,43 @@
     </main>
   </div>
 
+  <!-- 自定义领域弹窗 -->
+  <div class="ff-modal-mask" id="domainModalMask" onclick="if(event.target===this)closeDomainModal()">
+    <div class="ff-modal">
+      <div class="ff-modal-head"><h3>自定义领域</h3><button class="ff-modal-close" onclick="closeDomainModal()">×</button></div>
+      <div class="ff-modal-body">
+        <div class="ws-form-row">
+          <label class="ws-label">领域标识（英文，如 vet_bird）</label>
+          <input type="text" id="domName" class="ws-input" placeholder="vet_bird">
+        </div>
+        <div class="ws-form-row">
+          <label class="ws-label">展示名称（中文）</label>
+          <input type="text" id="domLabel" class="ws-input" placeholder="兽医（鸟类）">
+        </div>
+        <div class="ws-form-row">
+          <label class="ws-label">说明（可选）</label>
+          <input type="text" id="domDesc" class="ws-input" placeholder="该领域简介">
+        </div>
+        <button class="btn btn--primary" onclick="handleDomainSubmit()">提交审核</button>
+        <div id="domSubmitResult" class="ws-result"></div>
+        <h4 class="ws-subtitle">我的领域</h4>
+        <div id="myDomains" class="ws-domain-list"></div>
+        <div id="adminReviewBox" style="display:none;">
+          <h4 class="ws-subtitle">待审核（管理员）</h4>
+          <div id="pendingDomains" class="ws-domain-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 支付弹窗 -->
+  <div class="ff-modal-mask" id="payModalMask" onclick="if(event.target===this)closePayModal()">
+    <div class="ff-modal">
+      <div class="ff-modal-head"><h3>代训练支付</h3><button class="ff-modal-close" onclick="closePayModal()">×</button></div>
+      <div class="ff-modal-body" id="payModalBody"></div>
+    </div>
+  </div>
+
   <footer class="ws-footer">
     <span id="ff-sys-health">🔥 系统健康</span>
     <span class="ws-footer-sep">|</span>
@@ -264,6 +335,8 @@
         return;
       }
       loadBalance();
+      refreshDomainSelects();
+      togglePaidArea();
 
       var zone = document.getElementById('uploadZone');
       var fileInput = document.getElementById('dataFile');
@@ -290,6 +363,8 @@
     async function handleUpload() {
       var fileInput = document.getElementById('dataFile');
       var resultDiv = document.getElementById('uploadResult');
+      var domSel = document.getElementById('uploadDomain');
+      if (domSel) localStorage.setItem('ff_last_domain', domSel.value || 'law');
       if (!fileInput.files.length) {
         resultDiv.innerHTML = '<span class="ws-alert ws-alert--warn">请先选择文件</span>';
         return;
@@ -591,6 +666,178 @@
         var h = document.getElementById('ff-worker-status');
         if (h) { h.textContent = '⚡ 推理引擎: ❌ 不可达'; h.style.color = '#EF4444'; }
       }
+    }
+
+    /* ---------- 自定义领域 ---------- */
+    function openDomainModal() {
+      var m = document.getElementById('domainModalMask');
+      if (m) { m.classList.add('is-open'); renderMyDomains(); }
+    }
+    function closeDomainModal() {
+      var m = document.getElementById('domainModalMask');
+      if (m) m.classList.remove('is-open');
+    }
+    function statusText(s){ return s==='approved'?'已通过':(s==='rejected'?'已拒绝':'审核中'); }
+    async function handleDomainSubmit() {
+      var name = document.getElementById('domName').value.trim();
+      var label = document.getElementById('domLabel').value.trim();
+      var desc = document.getElementById('domDesc').value.trim();
+      var box = document.getElementById('domSubmitResult');
+      if (!/^[a-zA-Z0-9_-]+$/.test(name)) { box.innerHTML = '<span class="ws-alert ws-alert--error">标识只能含字母/数字/_/-</span>'; return; }
+      if (!label) { box.innerHTML = '<span class="ws-alert ws-alert--error">请填写展示名称</span>'; return; }
+      box.innerHTML = '<span class="ws-loading">提交中...</span>';
+      try {
+        var res = await submitDomain(name, label, desc);
+        box.innerHTML = '<span class="ws-alert ws-alert--success">已提交，状态：' + (res.status || 'pending') + '（待管理员审核）</span>';
+        document.getElementById('domName').value=''; document.getElementById('domLabel').value=''; document.getElementById('domDesc').value='';
+        renderMyDomains();
+      } catch (e) {
+        box.innerHTML = '<span class="ws-alert ws-alert--error">提交失败：' + (e.message || e) + '</span>';
+      }
+    }
+    async function renderMyDomains() {
+      var box = document.getElementById('myDomains');
+      if (!box) return;
+      try {
+        var res = await myDomains();
+        var doms = (res && res.domains) || [];
+        if (!doms.length) { box.innerHTML = '<p class="ws-empty">暂无自定义领域</p>'; }
+        else {
+          box.innerHTML = doms.map(function (d) {
+            return '<div class="ws-domain-item"><span>'+escapeHtml(d.label)+' <code>'+escapeHtml(d.name)+'</code></span>'
+              +'<span class="ws-badge ws-badge--'+d.status+'">'+statusText(d.status)+'</span></div>';
+          }).join('');
+        }
+        var user = getUser();
+        if (user && user.is_admin) {
+          var ab = document.getElementById('adminReviewBox');
+          if (ab) ab.style.display = '';
+          renderPendingDomains();
+        }
+      } catch (e) { box.innerHTML = '<p class="ws-empty">加载失败</p>'; }
+    }
+    async function renderPendingDomains() {
+      var box = document.getElementById('pendingDomains');
+      if (!box) return;
+      try {
+        var res = await listDomains();
+        var doms = (res && res.domains) || [];
+        var pend = doms.filter(function(d){ return d.status==='pending'; });
+        if (!pend.length) { box.innerHTML = '<p class="ws-empty">暂无待审核</p>'; return; }
+        box.innerHTML = pend.map(function(d){
+          return '<div class="ws-domain-item"><span>'+escapeHtml(d.label)+' <code>'+escapeHtml(d.name)+'</code> · '+escapeHtml(d.submitted_by||'')+'</span>'
+            +'<span><button class="btn btn--text ws-ok" onclick="doReview('+d.id+',\'approve\')">通过</button>'
+            +'<button class="btn btn--text ws-no" onclick="doReview('+d.id+',\'reject\')">拒绝</button></span></div>';
+        }).join('');
+      } catch(e){ box.innerHTML='<p class="ws-empty">加载失败</p>'; }
+    }
+    async function doReview(id, decision) {
+      try {
+        await reviewDomain(id, decision);
+        showToast('已'+(decision==='approve'?'通过':'拒绝'), 'success');
+        renderPendingDomains();
+        refreshDomainSelects();
+      } catch(e){ showToast('操作失败：'+(e.message||e), 'error'); }
+    }
+    function refreshDomainSelects() {
+      listDomains().then(function (res) {
+        var doms = (res && res.domains) || [];
+        var custom = doms.filter(function (d) { return d.status === 'approved'; });
+        ['seedDomain','trainDomain','aggDomain','uploadDomain'].forEach(function (id) {
+          var sel = document.getElementById(id);
+          if (!sel) return;
+          custom.forEach(function (d) {
+            var exists = Array.prototype.some.call(sel.options, function (o) { return o.value === d.name; });
+            if (!exists) {
+              var opt = document.createElement('option');
+              opt.value = d.name; opt.textContent = d.label + '（自定义）';
+              sel.appendChild(opt);
+            }
+          });
+        });
+      }).catch(function(){});
+    }
+    async function handleAugment() {
+      var domain = document.getElementById('uploadDomain').value || 'law';
+      var count = parseInt(document.getElementById('augCount').value, 10) || 10;
+      var prompt = document.getElementById('augPrompt').value.trim();
+      var resDiv = document.getElementById('augResult');
+      var prev = document.getElementById('augPreview');
+      resDiv.innerHTML = '<span class="ws-loading">调用智谱生成中...</span>';
+      prev.innerHTML = '';
+      try {
+        var res = await augmentData(domain, count, [], prompt);
+        resDiv.innerHTML = '<span class="ws-alert ws-alert--success">生成 '+ (res.generated||0) +' 条，已存入数据池 '+ (res.stored||0) +' 条</span>';
+        var items = res.items || [];
+        prev.innerHTML = items.slice(0,8).map(function(it){
+          return '<div class="ws-aug-item"><strong>Q:</strong> '+escapeHtml(it.question||'')+'<br><strong>A:</strong> '+escapeHtml(it.answer||'')+'</div>';
+        }).join('');
+      } catch (e) {
+        resDiv.innerHTML = '<span class="ws-alert ws-alert--error">生成失败：'+(e.message||e)+'</span>';
+      }
+    }
+    function togglePaidArea() {
+      var mode = document.querySelector('input[name="trainMode"]:checked');
+      var area = document.getElementById('paidTrainArea');
+      if (area) area.style.display = (mode && mode.value === 'proxy') ? '' : 'none';
+    }
+    var orderPollTimer = null;
+    async function startPaidPayment() {
+      var domain = document.getElementById('trainDomain').value || 'law';
+      var channel = document.getElementById('payChannel').value || 'wechat';
+      var box = document.getElementById('paidResult');
+      box.innerHTML = '<span class="ws-loading">创建订单中...</span>';
+      try {
+        var res = await createOrder(domain, channel);
+        openPayModal(res);
+        if (orderPollTimer) clearInterval(orderPollTimer);
+        orderPollTimer = setInterval(async function () {
+          try {
+            var st = await getOrder(res.order_no);
+            if (st.status === 'paid') {
+              clearInterval(orderPollTimer);
+              document.getElementById('paidResult').innerHTML = '<span class="ws-alert ws-alert--success">支付成功，代训练任务已创建：' + (st.task_id||'') + '</span>';
+              closePayModalLater();
+              loadBalance();
+            }
+          } catch(e){}
+        }, 3000);
+      } catch (e) {
+        box.innerHTML = '<span class="ws-alert ws-alert--error">下单失败：'+(e.message||e)+'</span>';
+      }
+    }
+    function openPayModal(res) {
+      var body = document.getElementById('payModalBody');
+      var qr = res.qr_content || '';
+      var url = res.pay_url || '';
+      var html = '<p>订单号：<code>'+res.order_no+'</code></p>';
+      html += '<p>金额：<b>¥'+res.amount+'</b> · 通道：'+(res.channel==='wechat'?'微信':'支付宝')+'</p>';
+      if (res.test_mode) {
+        html += '<div class="ws-alert ws-alert--warn">当前为测试模式（未配置商户号），使用测试二维码。</div>';
+        html += '<div class="ws-pay-qr">'+escapeHtml(qr)+'</div>';
+        html += '<button class="btn btn--primary" onclick="simulatePaid(\''+res.order_no+'\')">模拟支付成功（测试）</button>';
+      } else if (url) {
+        html += '<p><a class="btn btn--primary" href="'+url+'" target="_blank">打开支付页面</a></p>';
+      } else if (qr) {
+        html += '<div class="ws-pay-qr">'+escapeHtml(qr)+'</div><p class="ws-panel-desc--sm">请用对应 App 扫描上方二维码（code_url）</p>';
+      }
+      body.innerHTML = html;
+      document.getElementById('payModalMask').classList.add('is-open');
+    }
+    async function simulatePaid(orderNo) {
+      try {
+        var res = await confirmOrder(orderNo);
+        document.getElementById('paidResult').innerHTML = '<span class="ws-alert ws-alert--success">已确认，任务：'+(res.task_id||'')+'</span>';
+        closePayModal();
+        loadBalance();
+      } catch(e){ showToast('确认失败：'+(e.message||e),'error'); }
+    }
+    function closePayModal() {
+      var m = document.getElementById('payModalMask');
+      if (m) { m.classList.remove('is-open'); if (orderPollTimer) clearInterval(orderPollTimer); }
+    }
+    function closePayModalLater() {
+      setTimeout(function(){ var m=document.getElementById('payModalMask'); if(m) m.classList.remove('is-open'); }, 1500);
     }
 
     if (typeof initStatusBar === 'function') {
