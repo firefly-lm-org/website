@@ -14,6 +14,9 @@
       <a href="/" class="nav-logo">🔥 Firefly LM</a>
       <div class="nav-menu">
         <a href="/" id="navHome">首页</a>
+        <span class="nav-user" id="navUserName">
+          <span id="wsNavUserName">加载中...</span>
+        </span>
         <a href="javascript:logout()" class="nav-login">退出</a>
       </div>
     </div>
@@ -115,6 +118,7 @@
             <button class="btn btn--primary" onclick="handleStartTraining()">启动训练</button>
           </div>
           <div id="trainProgress" class="ws-result"></div>
+          <canvas id="lossChart" class="ws-loss-chart"></canvas>
           <div class="ws-history">
             <h4>训练历史</h4>
             <table class="ws-table" id="trainHistoryTable">
@@ -219,6 +223,14 @@
 
     </main>
   </div>
+
+  <footer class="ws-footer">
+    <span id="ff-sys-health">🔥 系统健康</span>
+    <span class="ws-footer-sep">|</span>
+    <span id="ff-worker-status">⚡ 推理引擎: 检测中...</span>
+    <span class="ws-footer-sep">|</span>
+    <span id="ff-points">💰 积分: --</span>
+  </footer>
 
   <script src="api.js"></script>
   <script>
@@ -329,8 +341,54 @@
     }
 
     var pollTimer = null;
+    var lossPoints = [];
+    function addLossPoint(step, loss) {
+      lossPoints.push({ step: step, loss: loss });
+      drawLossChart();
+    }
+    function drawLossChart() {
+      var canvas = document.getElementById('lossChart');
+      if (!canvas) return;
+      var cw = canvas.clientWidth || 600;
+      var ch = 200;
+      canvas.width = cw * 2;
+      canvas.height = ch * 2;
+      var ctx = canvas.getContext('2d');
+      ctx.scale(2, 2);
+      ctx.clearRect(0, 0, cw, ch);
+      if (lossPoints.length < 2) {
+        ctx.fillStyle = '#999';
+        ctx.font = '13px system-ui';
+        ctx.fillText('等待训练数据...', 12, 24);
+        return;
+      }
+      var losses = lossPoints.map(function (p) { return p.loss; });
+      var minLoss = Math.min.apply(null, losses);
+      var maxLoss = Math.max.apply(null, losses);
+      var range = (maxLoss - minLoss) || 1;
+      ctx.strokeStyle = '#F0F0F0';
+      ctx.lineWidth = 1;
+      for (var i = 0; i <= 4; i++) {
+        var y = (ch / 4) * i;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke();
+      }
+      ctx.strokeStyle = '#FF781F';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      lossPoints.forEach(function (p, i) {
+        var x = (i / (lossPoints.length - 1)) * (cw - 40) + 20;
+        var y = ch - 20 - ((p.loss - minLoss) / range) * (ch - 40);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      var last = lossPoints[lossPoints.length - 1];
+      ctx.fillStyle = '#FF781F';
+      ctx.font = '12px system-ui';
+      ctx.fillText('Loss: ' + last.loss.toFixed(3), cw - 110, 20);
+    }
     function pollTrainingStatus(taskId) {
       if (pollTimer) clearInterval(pollTimer);
+      lossPoints = [];
       pollTimer = setInterval(async function () {
         try {
           var res = await getTrainingStatus(taskId);
@@ -338,6 +396,9 @@
           var progress = res.progress || 0;
           var loss = res.loss ? ' loss=' + res.loss.toFixed(4) : '';
           var resultDiv = document.getElementById('trainProgress');
+          if (res.loss !== undefined && res.loss !== null) {
+            addLossPoint(progress, res.loss);
+          }
           if (status === 'completed') {
             clearInterval(pollTimer);
             resultDiv.innerHTML = '<span class="ws-alert ws-alert--success">训练完成！' + loss + '</span>';
@@ -425,6 +486,7 @@
       input.value = '';
       chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--bot ws-chat-msg--loading">思考中...</div>';
       chatBox.scrollTop = chatBox.scrollHeight;
+      var t0 = Date.now();
       try {
         var adapterId = document.getElementById('chatAdapterId').value.trim();
         var res = await chatSend([{ role: 'user', content: msg }], adapterId || null);
@@ -436,9 +498,14 @@
         } else {
           reply = JSON.stringify(res);
         }
+        var elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+        var icon = elapsed < 10 ? '🟢' : (elapsed < 30 ? '🟡' : '🔴');
+        var color = elapsed < 10 ? '#10B981' : (elapsed < 30 ? '#F59E0B' : '#EF4444');
         var loading = chatBox.querySelector('.ws-chat-msg--loading');
         if (loading) loading.remove();
-        chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--bot">' + escapeHtml(reply) + '</div>';
+        chatBox.innerHTML += '<div class="ws-chat-msg ws-chat-msg--bot">' + escapeHtml(reply) +
+          '<div class="ws-chat-meta" style="color:' + color + ';font-size:11px;margin-top:4px;">' +
+          icon + ' 推理耗时: ' + elapsed + 's</div></div>';
         chatBox.scrollTop = chatBox.scrollHeight;
       } catch (e) {
         var loading = chatBox.querySelector('.ws-chat-msg--loading');
@@ -493,6 +560,42 @@
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="3" class="ws-alert--error">加载失败</td></tr>';
       }
+    }
+
+    /* 底部状态栏：系统健康 / 推理引擎 / 积分 */
+    async function initStatusBar() {
+      var token = localStorage.getItem('firefly_token');
+      if (!token) return;
+      try {
+        var resp = await fetch((location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : '') + '/api/v1/integral/balance', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (resp.ok) {
+          var data = await resp.json();
+          var pts = document.getElementById('ff-points');
+          if (pts) pts.textContent = '💰 积分: ' + (data.balance !== undefined ? data.balance : 0);
+        }
+      } catch (e) {}
+      try {
+        var healthEl = document.getElementById('ff-worker-status');
+        var r = await fetch((location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : '') + '/api/v1/inference/v1/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ messages: [{ role: 'user', content: 'ping' }], max_tokens: 1 })
+        });
+        if (healthEl) {
+          healthEl.textContent = r.ok ? '⚡ 推理引擎: ✅ 在线' : '⚡ 推理引擎: ⚠️ 离线';
+          healthEl.style.color = r.ok ? '#10B981' : '#F59E0B';
+        }
+      } catch (e) {
+        var h = document.getElementById('ff-worker-status');
+        if (h) { h.textContent = '⚡ 推理引擎: ❌ 不可达'; h.style.color = '#EF4444'; }
+      }
+    }
+
+    if (typeof initStatusBar === 'function') {
+      initStatusBar();
+      setInterval(initStatusBar, 30000);
     }
   </script>
 </body>
