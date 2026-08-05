@@ -345,6 +345,21 @@
   };
 
   /* ========================================
+     API 19: 一键训练 (POST /api/v1/oneclick/train)
+     ======================================== */
+  window.oneclickTrain = function (domain, dataSource, count, autoAggregate) {
+    return api("/api/v1/oneclick/train", {
+      method: "POST",
+      body: JSON.stringify({
+        domain: domain,
+        data_source: dataSource || "seed",
+        count: count || 20,
+        auto_aggregate: autoAggregate !== false,
+      }),
+    });
+  };
+
+  /* ========================================
      API 3b: 数据上传 (复用 train/submit)
      将本地 JSONL 文件 base64 编码后通过 train/submit 提交
      ======================================== */
