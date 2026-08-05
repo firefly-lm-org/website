@@ -171,16 +171,16 @@
     <div class="modal-box">
       <span class="modal-close" onclick="closeModal()">×</span>
       <h3 class="modal-title">登录 Firefly LM</h3>
-      <p class="modal-sub">使用邮箱登录或注册新账号</p>
+      <p class="modal-sub">使用用户名登录或注册新账号</p>
       <div class="modal-form" id="loginForm">
-        <input type="email" placeholder="邮箱地址" class="modal-input" id="loginEmail">
+        <input type="text" placeholder="用户名" class="modal-input" id="loginEmail" autocomplete="username">
         <input type="password" placeholder="密码" class="modal-input" id="loginPwd">
         <button class="btn btn--primary btn--full" onclick="handleLogin()">登录</button>
         <p class="modal-switch">没有账号？<a href="javascript:switchToRegister()">注册</a></p>
       </div>
       <div class="modal-form" id="registerForm" style="display:none;">
-        <input type="email" placeholder="邮箱地址" class="modal-input" id="regEmail">
-        <input type="password" placeholder="密码（至少 8 位）" class="modal-input" id="regPwd">
+        <input type="text" placeholder="设置用户名" class="modal-input" id="regEmail" autocomplete="username">
+        <input type="password" placeholder="密码（至少 6 位）" class="modal-input" id="regPwd">
         <input type="password" placeholder="确认密码" class="modal-input" id="regPwd2">
         <button class="btn btn--primary btn--full" onclick="handleRegister()">注册</button>
         <p class="modal-switch">已有账号？<a href="javascript:switchToLogin()">登录</a></p>
