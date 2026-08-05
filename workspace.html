@@ -161,6 +161,29 @@
             </table>
           </div>
         </div>
+        <div class="ws-card ws-card--alt">
+          <h3 class="ws-card-title">⚡ 一键训练</h3>
+          <p class="ws-panel-desc ws-panel-desc--sm">自动准备真实数据并提交训练任务；同领域满 3 个完成任务后自动联邦聚合。</p>
+          <div class="ws-form-row">
+            <label class="ws-label">数据来源</label>
+            <div class="ws-radio-group">
+              <label class="ws-radio"><input type="radio" name="ocSource" value="seed" checked> 种子数据（系统生成）</label>
+              <label class="ws-radio"><input type="radio" name="ocSource" value="zhipu"> 智谱生成（需 ZHIPU_API_KEY）</label>
+              <label class="ws-radio"><input type="radio" name="ocSource" value="pool"> 数据池已有</label>
+            </div>
+          </div>
+          <div class="ws-form-row">
+            <label class="ws-label">生成条数（智谱/数据池）</label>
+            <input type="number" id="ocCount" class="ws-input" value="20" min="1" max="50" style="max-width:120px;">
+          </div>
+          <div class="ws-form-row">
+            <label class="ws-check"><input type="checkbox" id="ocAuto" checked> 自动聚合（满 3 个完成任务时）</label>
+          </div>
+          <div class="ws-form-row ws-btn-row">
+            <button class="btn btn--primary" onclick="handleOneClickTrain()">⚡ 启动一键训练</button>
+          </div>
+          <div id="ocResult" class="ws-result"></div>
+        </div>
       </section>
 
       <section id="panel-agg" class="ws-panel">
@@ -838,6 +861,26 @@
     }
     function closePayModalLater() {
       setTimeout(function(){ var m=document.getElementById('payModalMask'); if(m) m.classList.remove('is-open'); }, 1500);
+    }
+
+    async function handleOneClickTrain() {
+      var domain = document.getElementById('trainDomain').value || 'law';
+      var src = document.querySelector('input[name="ocSource"]:checked');
+      var source = src ? src.value : 'seed';
+      var count = parseInt(document.getElementById('ocCount').value, 10) || 20;
+      var auto = document.getElementById('ocAuto').checked;
+      var box = document.getElementById('ocResult');
+      box.innerHTML = '<span class="ws-loading">提交中...</span>';
+      try {
+        var res = await oneclickTrain(domain, source, count, auto);
+        var agg = res.aggregation || {};
+        var msg = '任务已创建：' + (res.task_id || '未知');
+        if (agg.triggered) msg += '；已自动聚合：' + (agg.round_id || '').toString();
+        else if (agg.completed_count !== undefined) msg += '（已完成 ' + agg.completed_count + ' 个，满 3 个自动聚合）';
+        box.innerHTML = '<span class="ws-alert ws-alert--success">' + escapeHtml(msg) + '</span>';
+      } catch (e) {
+        box.innerHTML = '<span class="ws-alert ws-alert--error">失败：' + (e.message || e) + '</span>';
+      }
     }
 
     if (typeof initStatusBar === 'function') {
