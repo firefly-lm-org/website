@@ -292,6 +292,59 @@
   };
 
   /* ========================================
+     API 16: 自定义领域 + 审核
+     ======================================== */
+  window.submitDomain = function (name, label, desc) {
+    return api("/api/v1/domains", {
+      method: "POST",
+      body: JSON.stringify({ name: name, label: label, description: desc || "" }),
+    });
+  };
+  window.listDomains = function () {
+    return api("/api/v1/domains");
+  };
+  window.myDomains = function () {
+    return api("/api/v1/domains/mine");
+  };
+  window.reviewDomain = function (id, decision, note) {
+    return api("/api/v1/domains/" + id + "/review", {
+      method: "POST",
+      body: JSON.stringify({ decision: decision, note: note || "" }),
+    });
+  };
+
+  /* ========================================
+     API 17: 智谱数据增强 (POST /api/v1/data/augment)
+     ======================================== */
+  window.augmentData = function (domain, count, samples, prompt) {
+    return api("/api/v1/data/augment", {
+      method: "POST",
+      body: JSON.stringify({
+        domain: domain,
+        count: count || 10,
+        samples: samples || [],
+        prompt: prompt || "",
+      }),
+    });
+  };
+
+  /* ========================================
+     API 18: 代训练付费订单 (POST /api/v1/orders)
+     ======================================== */
+  window.createOrder = function (domain, channel) {
+    return api("/api/v1/orders", {
+      method: "POST",
+      body: JSON.stringify({ domain: domain, channel: channel || "wechat" }),
+    });
+  };
+  window.getOrder = function (orderNo) {
+    return api("/api/v1/orders/" + orderNo);
+  };
+  window.confirmOrder = function (orderNo) {
+    return api("/api/v1/orders/" + orderNo + "/confirm", { method: "POST" });
+  };
+
+  /* ========================================
      API 3b: 数据上传 (复用 train/submit)
      将本地 JSONL 文件 base64 编码后通过 train/submit 提交
      ======================================== */
